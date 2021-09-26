@@ -4,8 +4,8 @@ A github bot to check your terraform Code
 
 ## TODO
 
-[ ] Documentation
-[ ] Config
-[ ] Check .terraform.lock.hcl for missing os
-[ ] Plugin for additional checks
-[ ] Fix Re-run button
+- [ ] Documentation
+- [ ] Config
+- [ ] Check .terraform.lock.hcl for missing os
+- [ ] Plugin for additional checks
+- [ ] Fix Re-run button
