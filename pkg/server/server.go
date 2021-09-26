@@ -15,7 +15,7 @@ func StartServer() {
 	if err != nil {
 		panic(err)
 	}
-	prCommentHandler := &github.CheckHandler{cc}
+	prCommentHandler := &github.CheckHandler{Client: cc}
 
 	webhookHandler := githubapp.NewDefaultEventDispatcher(config, prCommentHandler)
 

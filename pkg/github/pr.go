@@ -11,7 +11,7 @@ import (
 )
 
 type CheckHandler struct {
-	githubapp.ClientCreator
+	Client githubapp.ClientCreator
 }
 
 func (h *CheckHandler) Handles() []string {

@@ -35,7 +35,7 @@ func (h *CheckHandler) getToken(
 	repo GithubRepo,
 ) (string, error) {
 	installationID := githubapp.GetInstallationIDFromEvent(event)
-	client, err := h.NewAppClient()
+	client, err := h.Client.NewAppClient()
 	if err != nil {
 		return "", err
 	}
@@ -59,7 +59,7 @@ func (h *CheckHandler) getTokenAndClient(
 		return
 	}
 
-	client, err = h.NewInstallationClient(githubapp.GetInstallationIDFromEvent(event))
+	client, err = h.Client.NewInstallationClient(githubapp.GetInstallationIDFromEvent(event))
 	return
 }
 
