@@ -7,7 +7,7 @@ ENV UID=10001
 RUN adduser \
     --disabled-password \
     --gecos "" \
-    --home "/user" \
+    --home "/home/appuser" \
     --shell "/sbin/nologin" \
     --no-create-home \
     --uid "${UID}" \
@@ -38,10 +38,10 @@ COPY --from=builder /etc/group /etc/group
 
 COPY --from=builder /go/bin/terraform-checker /go/bin/terraform-checker
 
-RUN apk add curl
+RUN apk add curl git openssh
 RUN curl -Ls https://github.com/terraform-tools/simple-tfswitch/releases/download/0.1.1/simple-tfswitch_0.1.1_Linux_x86_64.tar.gz | tar xzf - -C /usr/local/bin
 RUN mv /usr/local/bin/simple-tfswitch /usr/local/bin/terraform
-RUN mkdir /user && chown appuser:appuser /user
+RUN mkdir -p /home/appuser && chown appuser:appuser /home/appuser
 USER appuser:appuser
 
 EXPOSE 8000
