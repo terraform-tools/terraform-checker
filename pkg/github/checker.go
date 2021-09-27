@@ -39,12 +39,13 @@ func (t *CheckEvent) checkOneTfDir(repoDir, tfDir string) {
 }
 
 func (t *CheckEvent) CreateCheckRun(dir string) (GhCheckRun, error) {
-	log.Print("Create check run ", dir)
+	checkRunName := fmt.Sprintf("terraform-check %v", dir)
+	log.Print("Create check run ", checkRunName)
 	cr, _, err := t.GhClient.Checks.CreateCheckRun(context.TODO(),
 		t.Repo.Owner,
 		t.Repo.Name,
 		github.CreateCheckRunOptions{
-			Name:      fmt.Sprintf("terraform-check %v", dir),
+			Name:      checkRunName,
 			HeadSHA:   t.Sha,
 			Status:    github.String("in_progress"),
 			StartedAt: &github.Timestamp{Time: time.Now()},
@@ -55,7 +56,7 @@ func (t *CheckEvent) CreateCheckRun(dir string) (GhCheckRun, error) {
 		return GhCheckRun{}, err
 	}
 	return GhCheckRun{
-		Name: fmt.Sprintf("tf %v", dir),
+		Name: checkRunName,
 		ID:   *cr.ID,
 	}, nil
 }
