@@ -14,7 +14,7 @@ import (
 func CloneRepo(repoName string, hash string, headBranch string, ghToken string) (*git.Repository, string, error) {
 	dir, err := ioutil.TempDir("", "tf-checker")
 	if err != nil {
-		log.Fatal().Err(err)
+		return nil, "", err
 	}
 
 	repo, err := git.PlainClone(dir, false, &git.CloneOptions{

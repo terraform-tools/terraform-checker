@@ -51,7 +51,7 @@ func (t *CheckEvent) CreateCheckRun(dir string) (GhCheckRun, error) {
 			StartedAt: &github.Timestamp{Time: time.Now()},
 		})
 	if err != nil {
-		log.Fatal().Err(err).Msg("Error creating check run")
+		log.Error().Err(err).Msg("Error creating check run")
 
 		return GhCheckRun{}, err
 	}
