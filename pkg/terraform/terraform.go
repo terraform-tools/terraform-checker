@@ -28,7 +28,7 @@ func FindAllTfDir(dir string) (out []string) {
 		return nil
 	})
 	if err != nil {
-		log.Warn().Msg("error")
+		log.Error().Err(err).Msg("error walking dir")
 	}
 
 	return
@@ -39,14 +39,14 @@ func CheckTfDir(dir string) (bool, string) {
 	log.Info().Msg("Starting new Terraform")
 	tf, err := tfexec.NewTerraform(workingDir, terraformPath)
 	if err != nil {
-		log.Error().Msgf("error running NewTerraform: %s", err)
+		log.Error().Err(err).Msg("error creating Terraform object")
 		return false, ""
 	}
 
 	err = tf.Init(context.Background(), tfexec.Upgrade(true))
 	if err != nil {
-		log.Error().Msgf("error running Init: %s", err)
-		return false, ""
+		log.Error().Err(err).Msg("error running terraform init")
+		return false, err.Error()
 	}
 
 	ok, output := tfValidate(tf)
@@ -65,7 +65,7 @@ func CheckTfDir(dir string) (bool, string) {
 func tfValidate(tf *tfexec.Terraform) (bool, string) {
 	validationError, err := tf.Validate(context.Background())
 	if err != nil {
-		log.Error().Msgf("error running Validate: %s", err)
+		log.Error().Err(err).Msg("error running terraform validate")
 		return false, "Error running `terraform validate` " + err.Error()
 	}
 	if validationError.ErrorCount != 0 {
@@ -88,14 +88,14 @@ func tfValidate(tf *tfexec.Terraform) (bool, string) {
 func tfFormat(tf *tfexec.Terraform) (bool, string) {
 	ok, files, err := tf.FormatCheck(context.Background())
 	if err != nil {
-		log.Error().Msgf("error running FmtCheck: %s", err)
+		log.Error().Err(err).Msg("error running terraform fmt check")
 		return false, ""
 	}
 	if !ok {
 		log.Info().Msg("Running fmt")
 		err := tf.FormatWrite(context.Background())
 		if err != nil {
-			log.Error().Msgf("error running FmtWrite: %s", err)
+			log.Error().Err(err).Msg("error running terraform fmt write")
 			return false, "Error running `terraform fmt` " + err.Error()
 		}
 		return false, "Your terraform formatting is wrong for the following files:\n" + strings.Join(

@@ -55,14 +55,14 @@ func CommitAndPushRepo(commitMsg string, repo *git.Repository) error {
 		},
 	})
 	if err != nil {
-		log.Print("Error committing ", err)
+		log.Error().Err(err).Msg("Error committing")
 		return err
 	}
 	err = repo.Push(&git.PushOptions{
 		RemoteName: "origin",
 	})
 	if err != nil {
-		log.Print("Error pushing ", err)
+		log.Error().Err(err).Msg("Error pushing")
 	}
 	return err
 }
