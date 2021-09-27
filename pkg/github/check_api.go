@@ -17,7 +17,7 @@ func (t *CheckEvent) UpdateCheckRun(cr GhCheckRun, status bool, message string) 
 	}
 
 	cro := github.CheckRunOutput{
-		Title:   github.String("Hello world"),
+		Title:   github.String("Terraform check is a " + conclusion),
 		Summary: &message,
 		Text:    github.String(""),
 	}
