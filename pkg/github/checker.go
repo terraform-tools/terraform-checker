@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/go-github/v39/github"
@@ -15,14 +16,26 @@ import (
 func (t *CheckEvent) allChecks() {
 	_, dir, _ := git.CloneRepo(t.Repo.FullName, t.Sha, t.HeadBranch, t.Token)
 
+	var wg sync.WaitGroup
+
 	for _, tfDir := range terraform.FindAllTfDir(dir) {
-		relDir := strings.Replace(tfDir, dir, "", 1)
-		cr, _ := t.CreateCheckRun(relDir)
-		log.Info().Msgf("Checking tfdir %v", tfDir)
-		checkOk, msg := terraform.CheckTfDir(tfDir)
-		log.Print("check output ", checkOk)
-		t.UpdateCheckRun(cr, checkOk, msg)
+		tfDir := tfDir
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			t.checkOneTfDir(dir, tfDir)
+		}()
 	}
+	wg.Wait()
+}
+
+func (t *CheckEvent) checkOneTfDir(repoDir, tfDir string) {
+	relDir := strings.Replace(tfDir, repoDir, "", 1)
+	cr, _ := t.CreateCheckRun(relDir)
+	log.Info().Msgf("Checking tfdir %v", tfDir)
+	checkOk, msg := terraform.CheckTfDir(tfDir)
+	log.Print("check output ", checkOk)
+	t.UpdateCheckRun(cr, checkOk, msg)
 }
 
 func (t *CheckEvent) CreateCheckRun(dir string) (GhCheckRun, error) {
