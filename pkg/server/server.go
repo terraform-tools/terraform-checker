@@ -13,7 +13,7 @@ func StartServer() {
 
 	cc, err := githubapp.NewDefaultCachingClientCreator(config)
 	if err != nil {
-		panic(err)
+		log.Fatal().Err(err).Msg("Error creating githubapp client")
 	}
 	prCommentHandler := &github.CheckHandler{Client: cc}
 
