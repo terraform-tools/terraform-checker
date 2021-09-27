@@ -21,15 +21,15 @@ func (h *CheckHandler) Handles() []string {
 func (h *CheckHandler) Handle(ctx context.Context, eventType, deliveryID string, payload []byte) error {
 	switch eventType {
 	case "check_suite":
-		return h.startCheckSuite(ctx, deliveryID, payload)
+		return h.startCheckSuite(ctx, payload)
 	case "check_run":
-		return h.startCheckRun(ctx, deliveryID, payload)
+		return h.startCheckRun(ctx, payload)
 	default:
 		return nil
 	}
 }
 
-func (h *CheckHandler) startCheckSuite(ctx context.Context, deliveryID string, payload []byte) error {
+func (h *CheckHandler) startCheckSuite(ctx context.Context, payload []byte) error {
 	var event github.CheckSuiteEvent
 	if err := json.Unmarshal(payload, &event); err != nil {
 		log.Print("Error Unmarshal")
@@ -50,7 +50,7 @@ func (h *CheckHandler) startCheckSuite(ctx context.Context, deliveryID string, p
 	return nil
 }
 
-func (h *CheckHandler) startCheckRun(ctx context.Context, deliveryID string, payload []byte) error {
+func (h *CheckHandler) startCheckRun(ctx context.Context, payload []byte) error {
 	var event github.CheckRunEvent
 	if err := json.Unmarshal(payload, &event); err != nil {
 		log.Print("Error Unmarshal")
