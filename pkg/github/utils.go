@@ -7,10 +7,10 @@ import (
 	"github.com/palantir/go-githubapp/githubapp"
 )
 
-func ghRepoFromCheckRunEvent(event github.CheckRunEvent) (GithubRepo, string, string) {
+func ghRepoFromCheckRunEvent(event github.CheckRunEvent) (Repo, string, string) {
 	repo := event.GetRepo()
 
-	return GithubRepo{
+	return Repo{
 		Name:     repo.GetName(),
 		FullName: repo.GetFullName(),
 		Owner:    repo.GetOwner().GetLogin(),
@@ -18,10 +18,10 @@ func ghRepoFromCheckRunEvent(event github.CheckRunEvent) (GithubRepo, string, st
 	}, event.GetCheckRun().GetHeadSHA(), event.GetCheckRun().GetCheckSuite().GetHeadBranch()
 }
 
-func ghRepoFromCheckSuiteEvent(event github.CheckSuiteEvent) (GithubRepo, string, string) {
+func ghRepoFromCheckSuiteEvent(event github.CheckSuiteEvent) (Repo, string, string) {
 	repo := event.GetRepo()
 
-	return GithubRepo{
+	return Repo{
 		Name:     repo.GetName(),
 		FullName: repo.GetFullName(),
 		Owner:    repo.GetOwner().GetLogin(),
@@ -32,7 +32,7 @@ func ghRepoFromCheckSuiteEvent(event github.CheckSuiteEvent) (GithubRepo, string
 func (h *CheckHandler) getToken(
 	ctx context.Context,
 	event githubapp.InstallationSource,
-	repo GithubRepo,
+	repo Repo,
 ) (string, error) {
 	installationID := githubapp.GetInstallationIDFromEvent(event)
 	client, err := h.Client.NewAppClient()
@@ -52,7 +52,7 @@ func (h *CheckHandler) getToken(
 func (h *CheckHandler) getTokenAndClient(
 	ctx context.Context,
 	event githubapp.InstallationSource,
-	repo GithubRepo,
+	repo Repo,
 ) (token string, client *github.Client, err error) {
 	token, err = h.getToken(ctx, event, repo)
 	if err != nil {

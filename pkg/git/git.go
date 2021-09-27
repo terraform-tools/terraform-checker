@@ -55,7 +55,7 @@ func CommitAndPushRepo(commitMsg string, repo *git.Repository) error {
 		},
 	})
 	if err != nil {
-		log.Print("Error commiting ", err)
+		log.Print("Error committing ", err)
 		return err
 	}
 	err = repo.Push(&git.PushOptions{

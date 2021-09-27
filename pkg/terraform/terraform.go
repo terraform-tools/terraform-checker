@@ -49,12 +49,12 @@ func CheckTfDir(dir string) (bool, string) {
 		return false, ""
 	}
 
-	ok, output := tfValidate(dir, tf)
+	ok, output := tfValidate(tf)
 	if !ok {
 		return false, output
 	}
 
-	ok, output = tfFormat(dir, tf)
+	ok, output = tfFormat(tf)
 	if !ok {
 		return false, output
 	}
@@ -62,7 +62,7 @@ func CheckTfDir(dir string) (bool, string) {
 	return true, ""
 }
 
-func tfValidate(dir string, tf *tfexec.Terraform) (bool, string) {
+func tfValidate(tf *tfexec.Terraform) (bool, string) {
 	validationError, err := tf.Validate(context.Background())
 	if err != nil {
 		log.Error().Msgf("error running Validate: %s", err)
@@ -85,7 +85,7 @@ func tfValidate(dir string, tf *tfexec.Terraform) (bool, string) {
 	return true, ""
 }
 
-func tfFormat(dir string, tf *tfexec.Terraform) (bool, string) {
+func tfFormat(tf *tfexec.Terraform) (bool, string) {
 	ok, files, err := tf.FormatCheck(context.Background())
 	if err != nil {
 		log.Error().Msgf("error running FmtCheck: %s", err)

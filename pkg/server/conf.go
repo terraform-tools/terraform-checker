@@ -2,7 +2,6 @@ package server
 
 import (
 	"io/ioutil"
-
 	"os"
 
 	"github.com/palantir/go-githubapp/githubapp"
@@ -10,7 +9,6 @@ import (
 )
 
 func loadConfig() githubapp.Config {
-
 	confLocation := os.Getenv("APP_CONF")
 	if confLocation == "" {
 		confLocation = "conf.yml"

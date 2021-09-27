@@ -2,7 +2,7 @@ package github
 
 import "github.com/google/go-github/v39/github"
 
-type GithubRepo struct {
+type Repo struct {
 	Name     string
 	FullName string
 	Owner    string
@@ -15,7 +15,7 @@ type GhCheckRun struct {
 }
 
 type CheckEvent struct {
-	Repo       GithubRepo
+	Repo       Repo
 	Sha        string
 	Token      string
 	HeadBranch string
