@@ -41,6 +41,6 @@ func (t *CheckEvent) UpdateCheckRun(cr GhCheckRun, status bool, message string) 
 			Actions:     actions,
 		})
 	if err != nil {
-		log.Fatal().Err(err).Msg("Error updating check run")
+		log.Error().Err(err).Msg("Error updating check run")
 	}
 }
