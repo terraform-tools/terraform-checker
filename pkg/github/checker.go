@@ -14,7 +14,11 @@ import (
 )
 
 func (t *CheckEvent) allChecks() {
-	_, dir, _ := git.CloneRepo(t.Repo.FullName, t.Sha, t.HeadBranch, t.Token)
+	_, dir, err := git.CloneRepo(t.Repo.FullName, t.Sha, t.HeadBranch, t.Token)
+	if err != nil {
+		log.Error().Err(err).Msg("Error cloning the repository")
+		return
+	}
 
 	var wg sync.WaitGroup
 

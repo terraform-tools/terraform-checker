@@ -32,7 +32,7 @@ func (h *CheckHandler) Handle(ctx context.Context, eventType, deliveryID string,
 func (h *CheckHandler) startCheckSuite(ctx context.Context, payload []byte) error {
 	var event github.CheckSuiteEvent
 	if err := json.Unmarshal(payload, &event); err != nil {
-		log.Print("Error Unmarshal")
+		log.Error().Err(err).Msg("Error unmarshal github payload")
 		return err
 	}
 
@@ -53,7 +53,7 @@ func (h *CheckHandler) startCheckSuite(ctx context.Context, payload []byte) erro
 func (h *CheckHandler) startCheckRun(ctx context.Context, payload []byte) error {
 	var event github.CheckRunEvent
 	if err := json.Unmarshal(payload, &event); err != nil {
-		log.Print("Error Unmarshal")
+		log.Error().Err(err).Msg("Error unmarshal github payload")
 		return err
 	}
 
