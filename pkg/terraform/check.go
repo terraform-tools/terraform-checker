@@ -2,9 +2,6 @@ package terraform
 
 import (
 	"context"
-	"io/fs"
-	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -13,26 +10,6 @@ import (
 )
 
 const terraformPath = "terraform"
-
-func FindAllTfDir(dir string) (out []string) {
-	regex := regexp.MustCompile("terraform.*")
-	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
-		if d.IsDir() {
-			if d.Name() == ".git" {
-				return filepath.SkipDir
-			} else if regex.MatchString(d.Name()) {
-				out = append(out, path)
-				return filepath.SkipDir
-			}
-		}
-		return nil
-	})
-	if err != nil {
-		log.Error().Err(err).Msg("error walking dir")
-	}
-
-	return
-}
 
 func CheckTfDir(dir string) (bool, string) {
 	workingDir := dir
@@ -92,12 +69,6 @@ func tfFormat(tf *tfexec.Terraform) (bool, string) {
 		return false, ""
 	}
 	if !ok {
-		log.Info().Msg("Running fmt")
-		err := tf.FormatWrite(context.Background())
-		if err != nil {
-			log.Error().Err(err).Msg("error running terraform fmt write")
-			return false, "Error running `terraform fmt` " + err.Error()
-		}
 		return false, "Your terraform formatting is wrong for the following files:\n" + strings.Join(
 			files,
 			"\n",
