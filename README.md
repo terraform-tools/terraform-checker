@@ -10,4 +10,4 @@ A github bot to check your terraform Code
 - [ ] Plugin for additional checks
 - [ ] Fix Re-run button
 - [ ] Add unit tests
-- [ ] Perform the checks in parallel
+- [x] Perform the checks in parallel
