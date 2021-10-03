@@ -2,6 +2,7 @@ package github
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/go-github/v39/github"
@@ -43,4 +44,27 @@ func (t *CheckEvent) UpdateCheckRun(cr GhCheckRun, status bool, message string) 
 	if err != nil {
 		log.Error().Err(err).Msg("Error updating check run")
 	}
+}
+
+func (t *CheckEvent) CreateCheckRun(dir string) (GhCheckRun, error) {
+	checkRunName := fmt.Sprintf("terraform-check %v", dir)
+	log.Print("Create check run ", checkRunName)
+	cr, _, err := t.GhClient.Checks.CreateCheckRun(context.TODO(),
+		t.Repo.Owner,
+		t.Repo.Name,
+		github.CreateCheckRunOptions{
+			Name:      checkRunName,
+			HeadSHA:   t.Sha,
+			Status:    github.String("in_progress"),
+			StartedAt: &github.Timestamp{Time: time.Now()},
+		})
+	if err != nil {
+		log.Error().Err(err).Msg("Error creating check run")
+
+		return GhCheckRun{}, err
+	}
+	return GhCheckRun{
+		Name: checkRunName,
+		ID:   *cr.ID,
+	}, nil
 }
