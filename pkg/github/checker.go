@@ -1,13 +1,9 @@
 package github
 
 import (
-	"context"
-	"fmt"
 	"strings"
 	"sync"
-	"time"
 
-	"github.com/google/go-github/v39/github"
 	"github.com/rs/zerolog/log"
 	"github.com/terraform-tools/terraform-checker/pkg/git"
 	"github.com/terraform-tools/terraform-checker/pkg/terraform"
@@ -40,27 +36,4 @@ func (t *CheckEvent) checkOneTfDir(repoDir, tfDir string) {
 	checkOk, msg := terraform.CheckTfDir(tfDir)
 	log.Print("check output ", checkOk)
 	t.UpdateCheckRun(cr, checkOk, msg)
-}
-
-func (t *CheckEvent) CreateCheckRun(dir string) (GhCheckRun, error) {
-	checkRunName := fmt.Sprintf("terraform-check %v", dir)
-	log.Print("Create check run ", checkRunName)
-	cr, _, err := t.GhClient.Checks.CreateCheckRun(context.TODO(),
-		t.Repo.Owner,
-		t.Repo.Name,
-		github.CreateCheckRunOptions{
-			Name:      checkRunName,
-			HeadSHA:   t.Sha,
-			Status:    github.String("in_progress"),
-			StartedAt: &github.Timestamp{Time: time.Now()},
-		})
-	if err != nil {
-		log.Error().Err(err).Msg("Error creating check run")
-
-		return GhCheckRun{}, err
-	}
-	return GhCheckRun{
-		Name: checkRunName,
-		ID:   *cr.ID,
-	}, nil
 }
