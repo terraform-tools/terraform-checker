@@ -3,58 +3,62 @@ linters:
   enable:
   - asciicheck
   - bodyclose
+  - bidichk
   - cyclop
-  - whitespace
-  - wastedassign
-  - unparam
-  - tparallel
-  - thelper
-  - tagliatelle
-  - exportloopref
-  - dupl
-  - goconst
-  - ifshort
-  - importas
-  - goimports
-  - gofumpt
-  - godot
-  - gocritic
-  - revive
   - depguard
   - dogsled
+  - ireturn
+  - nilnil
+  - tenv
+  - dupl
   - durationcheck
   - errname
   - errorlint
   - exhaustive
+  - exportloopref
   - forbidigo
   - forcetypeassert
   - funlen
   - gochecknoglobals
   - gochecknoinits
   - gocognit
+  - goconst
+  - gocritic
   - gocyclo
+  - godot
   - godox
   - goerr113
   - gofmt
+  - gofumpt
   - goheader
+  - goimports
   - gomnd
   - gomoddirectives
   - gomodguard
   - goprintffuncname
+  - gosec
+  - ifshort
+  - importas
   - makezero
   - misspell
   - nakedret
   - nestif
   - nilerr
   - noctx
-  - gosec
   - nolintlint
   - paralleltest
   - prealloc
   - predeclared
   - promlinter
+  - revive
   - rowserrcheck
   - sqlclosecheck
   - stylecheck
+  - tagliatelle
   - testpackage
+  - thelper
+  - tparallel
   - unconvert
+  - unparam
+  - wastedassign
+  - whitespace
