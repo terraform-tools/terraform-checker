@@ -7,7 +7,6 @@ linters:
   - cyclop
   - depguard
   - dogsled
-  - ireturn
   - nilnil
   - tenv
   - dupl
@@ -27,7 +26,6 @@ linters:
   - gocyclo
   - godot
   - godox
-  - goerr113
   - gofmt
   - gofumpt
   - goheader
@@ -62,3 +60,6 @@ linters:
   - unparam
   - wastedassign
   - whitespace
+  disable:
+  - goerr113 # don't know how to make it ok in errors package
+  - ireturn # maybe there's a better way for handling TfChecks

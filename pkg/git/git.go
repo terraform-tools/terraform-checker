@@ -35,6 +35,7 @@ func CloneRepo(repoName string, hash string, headBranch string, ghToken string) 
 		Branch: plumbing.NewBranchReferenceName(headBranch),
 		Create: true,
 	})
+
 	return repo, dir, err
 }
 
@@ -47,6 +48,13 @@ func CommitAndPushRepo(commitMsg string, repo *git.Repository) error {
 	if err != nil {
 		return err
 	}
+
+	status, err := w.Status()
+	if status.IsClean() {
+		log.Debug().Err(err).Msg("Directory is clean, not committing")
+		return nil
+	}
+
 	_, err = w.Commit(commitMsg, &git.CommitOptions{
 		Author: &object.Signature{
 			Name:  "terraform-checker",

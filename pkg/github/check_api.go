@@ -3,60 +3,29 @@ package github
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
-	"github.com/google/go-github/v39/github"
+	"github.com/google/go-github/v43/github"
 	"github.com/rs/zerolog/log"
+	"github.com/shurcooL/githubv4"
+	"github.com/terraform-tools/terraform-checker/pkg/terraform"
 )
 
-func (t *CheckEvent) UpdateCheckRun(cr GhCheckRun, status bool, message string) {
-	var conclusion string
-	if status {
-		conclusion = "success"
-	} else {
-		conclusion = "failure"
-	}
+func (e *CheckEvent) CreateCheckRun(check terraform.TfCheck) (GhCheckRun, error) {
+	checkRunName := fmt.Sprintf("terraform-check %v %v", check.Name(), check.RelDir())
+	log.Info().Msgf("Create check run %s on repo %s PR %s", checkRunName, e.GetRepo().GetFullName(), e.GetPRURL())
 
-	cro := github.CheckRunOutput{
-		Title:   github.String("Terraform check is a " + conclusion),
-		Summary: &message,
-		Text:    github.String(""),
-	}
-
-	fmtAction := github.CheckRunAction{
-		Label:       "fmt",
-		Description: "format the terraform code",
-		Identifier:  "fmt",
-	}
-	actions := []*github.CheckRunAction{&fmtAction}
-	_, _, err := t.GhClient.Checks.UpdateCheckRun(context.TODO(),
-		t.Repo.Owner,
-		t.Repo.Name,
-		cr.ID,
-		github.UpdateCheckRunOptions{
-			Name:        cr.Name,
-			Status:      github.String("completed"),
-			Output:      &cro,
-			Conclusion:  &conclusion,
-			CompletedAt: &github.Timestamp{Time: time.Now()},
-			Actions:     actions,
-		})
-	if err != nil {
-		log.Error().Err(err).Msg("Error updating check run")
-	}
-}
-
-func (t *CheckEvent) CreateCheckRun(dir string) (GhCheckRun, error) {
-	checkRunName := fmt.Sprintf("terraform-check %v", dir)
-	log.Print("Create check run ", checkRunName)
-	cr, _, err := t.GhClient.Checks.CreateCheckRun(context.TODO(),
-		t.Repo.Owner,
-		t.Repo.Name,
+	externalID := encodeExternalID(check)
+	cr, _, err := e.GetGhClient().Checks.CreateCheckRun(context.TODO(),
+		e.GetRepo().GetOwner().GetLogin(),
+		e.GetRepo().GetName(),
 		github.CreateCheckRunOptions{
-			Name:      checkRunName,
-			HeadSHA:   t.Sha,
-			Status:    github.String("in_progress"),
-			StartedAt: &github.Timestamp{Time: time.Now()},
+			Name:       checkRunName,
+			HeadSHA:    e.GetSHA(),
+			Status:     github.String(strings.ToLower(string(githubv4.CheckStatusStateInProgress))),
+			StartedAt:  &github.Timestamp{Time: time.Now()},
+			ExternalID: github.String(externalID),
 		})
 	if err != nil {
 		log.Error().Err(err).Msg("Error creating check run")
@@ -67,4 +36,39 @@ func (t *CheckEvent) CreateCheckRun(dir string) (GhCheckRun, error) {
 		Name: checkRunName,
 		ID:   *cr.ID,
 	}, nil
+}
+
+func (e *CheckEvent) UpdateCheckRun(cr GhCheckRun, conclusion githubv4.CheckConclusionState, cmdOutput string, check terraform.TfCheck) {
+	checkStatus := fmt.Sprintf("**Check Status:**  %s", CheckConclusionStateEmoji(conclusion))
+
+	cro := github.CheckRunOutput{
+		Title:       &cr.Name,
+		Summary:     &checkStatus,
+		Annotations: check.Annotations(),
+	}
+	if cmdOutput != "" {
+		cro.Text = github.String(fmt.Sprintf("```shell\n%s\n```", cmdOutput))
+	}
+
+	actions := []*github.CheckRunAction{}
+	if conclusion != githubv4.CheckConclusionStateSuccess {
+		actions = check.FixActions()
+	}
+
+	log.Info().Msgf("Update check run %s on repo %s PR %s", cr.Name, e.GetRepo().GetFullName(), e.GetPRURL())
+	_, _, err := e.GetGhClient().Checks.UpdateCheckRun(context.TODO(),
+		e.GetRepo().GetOwner().GetLogin(),
+		e.GetRepo().GetName(),
+		cr.ID,
+		github.UpdateCheckRunOptions{
+			Name:        cr.Name,
+			Status:      github.String(strings.ToLower(string(githubv4.CheckStatusStateCompleted))),
+			Output:      &cro,
+			Conclusion:  github.String(strings.ToLower(string(conclusion))),
+			CompletedAt: &github.Timestamp{Time: time.Now()},
+			Actions:     actions,
+		})
+	if err != nil {
+		log.Error().Err(err).Msg("Error updating check run")
+	}
 }

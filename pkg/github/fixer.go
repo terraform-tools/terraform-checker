@@ -1,19 +1,22 @@
 package github
 
 import (
+	"github.com/terraform-tools/terraform-checker/pkg/filter"
 	"github.com/terraform-tools/terraform-checker/pkg/git"
 	"github.com/terraform-tools/terraform-checker/pkg/terraform"
 )
 
-func (t *CheckEvent) fixFmt() error {
-	repo, dir, err := git.CloneRepo(t.Repo.FullName, t.Sha, t.HeadBranch, t.Token)
+const fmtCommitName = "terraform-checker fmt fix"
+
+func (e *CheckEvent) fixFmt(dirFilter []filter.Option) error {
+	repo, dir, err := git.CloneRepo(e.GetRepo().GetFullName(), e.GetSHA(), e.GetBranch(), e.GetToken())
 	if err != nil {
 		return err
 	}
 
-	if err := terraform.FixFmt(dir); err != nil {
+	if err := terraform.FixFmt(dir, dirFilter...); err != nil {
 		return err
 	}
 
-	return git.CommitAndPushRepo("test fmt", repo)
+	return git.CommitAndPushRepo(fmtCommitName, repo)
 }

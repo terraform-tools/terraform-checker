@@ -1,29 +1,41 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/palantir/go-githubapp/githubapp"
 	"github.com/rs/zerolog/log"
+	"github.com/terraform-tools/terraform-checker/pkg/config"
 	"github.com/terraform-tools/terraform-checker/pkg/github"
 )
 
-func StartServer() {
-	config := loadConfig()
+const ListeningPort = 8000
 
-	cc, err := githubapp.NewDefaultCachingClientCreator(config)
+func StartServer() {
+	config := config.LoadConfig()
+
+	cc, err := githubapp.NewDefaultCachingClientCreator(config.GithubHubAppConfig)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Error creating githubapp client")
 	}
-	prCommentHandler := &github.CheckHandler{Client: cc}
 
-	webhookHandler := githubapp.NewDefaultEventDispatcher(config, prCommentHandler)
+	mainHandler := &github.CheckHandler{Client: cc, Config: config}
+	webhookHandler := githubapp.NewDefaultEventDispatcher(config.GithubHubAppConfig, mainHandler)
 
 	mux := http.NewServeMux()
 	mux.Handle(githubapp.DefaultWebhookRoute, webhookHandler)
-	log.Print("Starting webserver")
-	err = http.ListenAndServe(":8000", mux)
+	mux.HandleFunc("/ping", PingHandler)
+	log.Info().Msgf("Starting webserver, listening :%d", ListeningPort)
+	err = http.ListenAndServe(fmt.Sprintf(":%d", ListeningPort), mux)
 	if err != nil {
 		log.Error().Err(err).Msg("Error creating webserver")
+	}
+}
+
+func PingHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	if _, err := w.Write([]byte("pong")); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
