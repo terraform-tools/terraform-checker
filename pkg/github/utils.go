@@ -1,98 +1,39 @@
 package github
 
 import (
-	"context"
+	"fmt"
+	"strings"
 
-	"github.com/google/go-github/v39/github"
-	"github.com/palantir/go-githubapp/githubapp"
+	"github.com/rs/zerolog/log"
+	"github.com/terraform-tools/terraform-checker/pkg/terraform"
 )
 
-func ghRepoFromCheckRunEvent(event github.CheckRunEvent) (Repo, string, string) {
-	repo := event.GetRepo()
+const externalIDParts = 2
 
-	return Repo{
-		Name:     repo.GetName(),
-		FullName: repo.GetFullName(),
-		Owner:    repo.GetOwner().GetLogin(),
-		ID:       repo.GetID(),
-	}, event.GetCheckRun().GetHeadSHA(), event.GetCheckRun().GetCheckSuite().GetHeadBranch()
+func encodeExternalID(e terraform.TfCheck) string {
+	return fmt.Sprintf("%s:%s", e.RelDir(), e.Name())
 }
 
-func ghRepoFromCheckSuiteEvent(event github.CheckSuiteEvent) (Repo, string, string) {
-	repo := event.GetRepo()
+func decodeExternalID(id string) (dir string, checkType string, err error) {
+	split := strings.Split(id, ":")
 
-	return Repo{
-		Name:     repo.GetName(),
-		FullName: repo.GetFullName(),
-		Owner:    repo.GetOwner().GetLogin(),
-		ID:       repo.GetID(),
-	}, event.GetCheckSuite().GetHeadSHA(), event.GetCheckSuite().GetHeadBranch()
-}
-
-func (h *CheckHandler) getToken(
-	ctx context.Context,
-	event githubapp.InstallationSource,
-	repo Repo,
-) (string, error) {
-	installationID := githubapp.GetInstallationIDFromEvent(event)
-	client, err := h.Client.NewAppClient()
-	if err != nil {
-		return "", err
+	if len(split) != externalIDParts {
+		log.Error().Msgf("there should be two parts in ExternalID %v", id)
 	}
 
-	token, _, err := client.Apps.CreateInstallationToken(ctx,
-		installationID,
-		&github.InstallationTokenOptions{
-			RepositoryIDs: []int64{repo.ID},
-		})
-
-	return token.GetToken(), err
-}
-
-func (h *CheckHandler) getTokenAndClient(
-	ctx context.Context,
-	event githubapp.InstallationSource,
-	repo Repo,
-) (token string, client *github.Client, err error) {
-	token, err = h.getToken(ctx, event, repo)
-	if err != nil {
-		return
-	}
-
-	client, err = h.Client.NewInstallationClient(githubapp.GetInstallationIDFromEvent(event))
+	dir = split[0]
+	checkType = split[1]
 	return
 }
 
-func (h *CheckHandler) checkEventFromSuite(ctx context.Context, event github.CheckSuiteEvent) (*CheckEvent, error) {
-	repo, sha, headBranch := ghRepoFromCheckSuiteEvent(event)
-
-	token, client, err := h.getTokenAndClient(ctx, &event, repo)
-	if err != nil {
-		return nil, err
-	}
-
-	return &CheckEvent{
-		Repo:       repo,
-		Sha:        sha,
-		Token:      token,
-		HeadBranch: headBranch,
-		GhClient:   client,
-	}, nil
+func getAuthorizedCheckSuiteActions() []string {
+	return []string{"requested", "rerequested"}
 }
 
-func (h *CheckHandler) checkEventFromRun(ctx context.Context, event github.CheckRunEvent) (*CheckEvent, error) {
-	repo, sha, headBranch := ghRepoFromCheckRunEvent(event)
+func getAuthorizedCheckRunActions() []string {
+	return []string{"requested_action", "rerequested"}
+}
 
-	token, client, err := h.getTokenAndClient(ctx, &event, repo)
-	if err != nil {
-		return nil, err
-	}
-
-	return &CheckEvent{
-		Repo:       repo,
-		Sha:        sha,
-		Token:      token,
-		HeadBranch: headBranch,
-		GhClient:   client,
-	}, nil
+func getAuthorizedPullRequestActions() []string {
+	return []string{"opened", "reopened"}
 }
