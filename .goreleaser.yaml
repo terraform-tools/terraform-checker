@@ -14,8 +14,6 @@ builds:
     ldflags:
       - -s
       - -w
-    gcflags:
-      - -trimpath={{ .Env.GOPATH }}/src
 
 dockers:
   - goos: linux
