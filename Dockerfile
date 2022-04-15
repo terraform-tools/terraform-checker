@@ -1,4 +1,4 @@
-FROM golang:1.18-alpine AS builder
+FROM alpine:3.15.4
 
 # Create appuser.
 ENV USER=appuser
@@ -13,30 +13,7 @@ RUN adduser \
     --uid "${UID}" \
     "${USER}"
 
-WORKDIR $GOPATH/src/terraform-checker
-COPY go.mod .
-COPY go.sum .
-RUN go mod download
-RUN go mod verify
-
-COPY main.go .
-COPY pkg pkg
-
-
-ARG GIT_COMMIT
-ARG GIT_TAG
-
-RUN ls
-RUN ls; CGO_ENABLED=0 GO111MODULE=on GOOS=linux GOARCH=amd64 go build -o /go/bin/terraform-checker -ldflags="-extldflags '-static' -w -s -X main.buildTag=${GIT_TAG} -X main.buildRevision=${GIT_COMMIT}" -gcflags="-trimpath=${GOPATH}/src"
-
-# Final image
-FROM alpine:3.15.4
-
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=builder /etc/passwd /etc/passwd
-COPY --from=builder /etc/group /etc/group
-
-COPY --from=builder /go/bin/terraform-checker /go/bin/terraform-checker
+COPY terraform-checker /go/bin/terraform-checker
 
 RUN apk add curl git openssh unzip
 
