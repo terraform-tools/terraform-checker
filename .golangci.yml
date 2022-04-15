@@ -1,4 +1,6 @@
 ---
+run:
+  timeout: 3m
 linters:
   enable:
   - asciicheck
