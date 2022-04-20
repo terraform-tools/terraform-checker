@@ -28,3 +28,12 @@ func FindAllTfDir(dir string) (out []string) {
 
 	return
 }
+
+// InitTfLint goal is to launch tflint --init once at program startup
+func InitTfLint() {
+	ok, out := tfLintInit()
+	if !ok {
+		log.Error().Msgf("error while executing tflint --init. out: %s", out)
+	}
+	return
+}

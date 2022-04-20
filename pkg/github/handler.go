@@ -7,6 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/terraform-tools/terraform-checker/pkg/config"
 	"github.com/terraform-tools/terraform-checker/pkg/filter"
+	"github.com/terraform-tools/terraform-checker/pkg/terraform"
 
 	"github.com/google/go-github/v43/github"
 	"github.com/palantir/go-githubapp/githubapp"
@@ -15,6 +16,10 @@ import (
 type CheckHandler struct {
 	Client githubapp.ClientCreator
 	Config *config.Config
+}
+
+func (h *CheckHandler) Init() {
+	terraform.InitTfLint()
 }
 
 func (h *CheckHandler) Handles() []string {

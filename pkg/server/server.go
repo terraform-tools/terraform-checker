@@ -21,6 +21,8 @@ func StartServer() {
 	}
 
 	mainHandler := &github.CheckHandler{Client: cc, Config: config}
+	mainHandler.Init()
+
 	webhookHandler := githubapp.NewDefaultEventDispatcher(config.GithubHubAppConfig, mainHandler)
 
 	mux := http.NewServeMux()
