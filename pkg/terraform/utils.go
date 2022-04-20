@@ -6,6 +6,8 @@ import (
 	"regexp"
 
 	"github.com/rs/zerolog/log"
+	"github.com/shurcooL/githubv4"
+	"github.com/terraform-linters/tflint/tflint"
 )
 
 // FindAllTfDir finds all of the terraform directory inside a directory.
@@ -36,4 +38,17 @@ func InitTfLint() {
 		log.Error().Msgf("error while executing tflint --init. out: %s", out)
 	}
 	return
+}
+
+func TfLintRuleSeverityToAnnotationLevel(severity string) string {
+	switch severity {
+	case tflint.ERROR.String():
+		return string(githubv4.CheckAnnotationLevelFailure)
+	case tflint.NOTICE.String():
+		return string(githubv4.CheckAnnotationLevelNotice)
+	case tflint.WARNING.String():
+		return string(githubv4.CheckAnnotationLevelWarning)
+	default:
+		return string(githubv4.CheckAnnotationLevelWarning)
+	}
 }
