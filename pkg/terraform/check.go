@@ -210,16 +210,28 @@ func (t *TfCheckTfLint) Annotations() (annotations []*github.CheckRunAnnotation)
 			continue
 		}
 
-		annotations = append(annotations, &github.CheckRunAnnotation{
+		newAnnotation := github.CheckRunAnnotation{
 			Title:           github.String(currentIssue.Rule.Name),
 			Message:         &currentIssue.Message,
 			Path:            github.String(fmt.Sprintf("%s/%s", t.RelDir(), currentIssue.Range.Filename)),
 			AnnotationLevel: github.String(strings.ToLower(TfLintRuleSeverityToAnnotationLevel(currentIssue.Rule.Severity))),
-			StartLine:       github.Int(currentIssue.Range.Start.Line),
-			StartColumn:     github.Int(currentIssue.Range.Start.Column),
-			EndLine:         github.Int(currentIssue.Range.End.Line),
-			EndColumn:       github.Int(currentIssue.Range.End.Column),
-		})
+		}
+
+		// Only set StarLine/EndLine if they are different from 0
+		if currentIssue.Range.Start.Line == 0 && currentIssue.Range.End.Line == 0 {
+			continue
+		}
+
+		newAnnotation.StartLine = github.Int(currentIssue.Range.Start.Line)
+		newAnnotation.EndLine = github.Int(currentIssue.Range.End.Line)
+
+		// Only set StarColumn/EndColumn if StartLine/Endline are on same line
+		if newAnnotation.StartLine == newAnnotation.EndLine {
+			newAnnotation.StartColumn = github.Int(currentIssue.Range.Start.Column)
+			newAnnotation.EndColumn = github.Int(currentIssue.Range.End.Column)
+		}
+
+		annotations = append(annotations, &newAnnotation)
 	}
 	return
 }
