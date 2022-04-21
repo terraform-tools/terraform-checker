@@ -31,7 +31,7 @@ func FindAllTfDir(dir string) (out []string) {
 	return
 }
 
-// InitTfLint goal is to launch tflint --init once at program startup
+// InitTfLint goal is to launch tflint --init once at program startup.
 func InitTfLint() {
 	ok, out := tfLintInit()
 	if !ok {
@@ -40,6 +40,7 @@ func InitTfLint() {
 	return
 }
 
+// TfLintRuleSeverityToAnnotationLevel allows to convert tflint severity to github annotation level.
 func TfLintRuleSeverityToAnnotationLevel(severity string) string {
 	switch severity {
 	case tflint.ERROR.String():

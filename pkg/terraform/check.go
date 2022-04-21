@@ -233,7 +233,8 @@ func (t *TfCheckTfLint) Annotations() (annotations []*github.CheckRunAnnotation)
 
 		annotations = append(annotations, &newAnnotation)
 	}
-	return
+
+	return annotations
 }
 
 func NewTfCheck(checkType TfCheckType, tfDir, relDir string) TfCheck {
