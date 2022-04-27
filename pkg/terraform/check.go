@@ -3,7 +3,6 @@ package terraform
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	"github.com/google/go-github/v43/github"
 	"github.com/rs/zerolog/log"
@@ -214,7 +213,7 @@ func (t *TfCheckTfLint) Annotations() (annotations []*github.CheckRunAnnotation)
 			Title:           github.String(currentIssue.Rule.Name),
 			Message:         &currentIssue.Message,
 			Path:            github.String(fmt.Sprintf("%s/%s", t.RelDir(), currentIssue.Range.Filename)),
-			AnnotationLevel: github.String(strings.ToLower(TfLintRuleSeverityToAnnotationLevel(currentIssue.Rule.Severity))),
+			AnnotationLevel: TfLintRuleSeverityToAnnotationLevel(currentIssue.Rule.Severity),
 		}
 
 		// Only set StarLine/EndLine if they are different from 0

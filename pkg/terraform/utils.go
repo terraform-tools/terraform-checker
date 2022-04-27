@@ -4,7 +4,9 @@ import (
 	"io/fs"
 	"path/filepath"
 	"regexp"
+	"strings"
 
+	"github.com/google/go-github/v43/github"
 	"github.com/rs/zerolog/log"
 	"github.com/shurcooL/githubv4"
 	"github.com/terraform-linters/tflint/tflint"
@@ -41,15 +43,19 @@ func InitTfLint() {
 }
 
 // TfLintRuleSeverityToAnnotationLevel allows to convert tflint severity to github annotation level.
-func TfLintRuleSeverityToAnnotationLevel(severity string) string {
+func TfLintRuleSeverityToAnnotationLevel(severity string) *string {
+	var finalStr githubv4.CheckAnnotationLevel
+
 	switch severity {
 	case tflint.ERROR.String():
-		return string(githubv4.CheckAnnotationLevelFailure)
+		finalStr = githubv4.CheckAnnotationLevelFailure
 	case tflint.NOTICE.String():
-		return string(githubv4.CheckAnnotationLevelNotice)
+		finalStr = githubv4.CheckAnnotationLevelNotice
 	case tflint.WARNING.String():
-		return string(githubv4.CheckAnnotationLevelWarning)
+		finalStr = githubv4.CheckAnnotationLevelWarning
 	default:
-		return string(githubv4.CheckAnnotationLevelWarning)
+		finalStr = githubv4.CheckAnnotationLevelWarning
 	}
+
+	return github.String(strings.ToLower(string(finalStr)))
 }
