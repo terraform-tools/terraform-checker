@@ -102,3 +102,9 @@ func tfLint(dir, format string) (bool, string) {
 	out, err := cmd.CombinedOutput()
 	return err == nil, string(out)
 }
+
+func tfLintInit() (bool, string) {
+	cmd := exec.Command("tflint", []string{"--init"}...) // #nosec
+	out, err := cmd.CombinedOutput()
+	return err == nil, string(out)
+}
