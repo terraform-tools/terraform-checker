@@ -32,6 +32,7 @@ func (e *CheckEvent) runChecks(filters ...filter.Option) {
 		log.Error().Err(err).Msg("Error cloning the repository")
 		return
 	}
+	defer git.RemoveRepo(dir)
 
 	var wg sync.WaitGroup
 
