@@ -2,6 +2,7 @@ package git
 
 import (
 	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -73,4 +74,10 @@ func CommitAndPushRepo(commitMsg string, repo *git.Repository) error {
 		log.Error().Err(err).Msg("Error pushing")
 	}
 	return err
+}
+
+func RemoveRepo(dir string) {
+	if err := os.RemoveAll(dir); err != nil {
+		log.Error().Err(err).Msgf("Error while removing folder %v", dir)
+	}
 }
