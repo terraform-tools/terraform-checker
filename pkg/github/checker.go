@@ -34,7 +34,11 @@ func (e *CheckEvent) runChecks(filters ...filter.Option) {
 	}
 	defer git.RemoveRepo(dir)
 
-	var wg sync.WaitGroup
+	// SYNCHRONIZATION
+	// Wait group for waiting all tasks to be done in the end
+	var tasksDone sync.WaitGroup
+	// Chan allowing to run only n goroutines at the same time
+	currently_running := make(chan int, e.subFolderParallelism)
 
 	for _, tfDir := range terraform.FindAllTfDir(dir) {
 		tfDir := tfDir
@@ -44,13 +48,16 @@ func (e *CheckEvent) runChecks(filters ...filter.Option) {
 			continue
 		}
 
-		wg.Add(1)
+		currently_running <- 1 // queue current task
+		tasksDone.Add(1)
 		go func() {
-			defer wg.Done()
+			defer tasksDone.Done()
 			e.processTfDir(dir, tfDir, tfCheckTypes)
+			<-currently_running // free up space for next one
 		}()
 	}
-	wg.Wait()
+	tasksDone.Wait()
+	close(currently_running)
 }
 
 func (e *CheckEvent) processTfDir(repoDir, tfDir string, tfCheckTypes []string) {

@@ -44,12 +44,13 @@ type GhCheckRun struct {
 
 type CheckEvent struct {
 	GenericGithubEvent
-	repo     Repo
-	sha      string
-	token    string
-	branch   string
-	prURL    string
-	ghClient *github.Client
+	repo                 Repo
+	sha                  string
+	token                string
+	branch               string
+	prURL                string
+	ghClient             *github.Client
+	subFolderParallelism int
 }
 
 func (c *CheckEvent) GetRepo() *Repo {
@@ -108,13 +109,14 @@ func NewCheckEvent(clientCreator githubapp.ClientCreator, event GenericGithubEve
 	}
 
 	return &CheckEvent{
-		GenericGithubEvent: event,
-		repo:               repo,
-		sha:                event.GetHeadSHA(),
-		token:              token.GetToken(),
-		branch:             event.GetHeadBranch(),
-		ghClient:           client,
-		prURL:              event.PrURL(),
+		GenericGithubEvent:   event,
+		repo:                 repo,
+		sha:                  event.GetHeadSHA(),
+		token:                token.GetToken(),
+		branch:               event.GetHeadBranch(),
+		ghClient:             client,
+		prURL:                event.PrURL(),
+		subFolderParallelism: config.SubFolderParallelism,
 	}, nil
 }
 
