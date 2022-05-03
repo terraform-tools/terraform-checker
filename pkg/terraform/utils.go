@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/google/go-github/v43/github"
+	tfjson "github.com/hashicorp/terraform-json"
 	"github.com/rs/zerolog/log"
 	"github.com/shurcooL/githubv4"
 	"github.com/terraform-linters/tflint/tflint"
@@ -52,6 +53,24 @@ func TfLintRuleSeverityToAnnotationLevel(severity string) *string {
 	case tflint.NOTICE.String():
 		finalStr = githubv4.CheckAnnotationLevelNotice
 	case tflint.WARNING.String():
+		finalStr = githubv4.CheckAnnotationLevelWarning
+	default:
+		finalStr = githubv4.CheckAnnotationLevelWarning
+	}
+
+	return github.String(strings.ToLower(string(finalStr)))
+}
+
+// TfValidateSeverityToAnnotationLevel allows to convert terraform validate severity to github annotation level.
+func TfValidateSeverityToAnnotationLevel(severity tfjson.DiagnosticSeverity) *string {
+	var finalStr githubv4.CheckAnnotationLevel
+
+	switch severity {
+	case tfjson.DiagnosticSeverityUnknown:
+		finalStr = githubv4.CheckAnnotationLevelFailure
+	case tfjson.DiagnosticSeverityError:
+		finalStr = githubv4.CheckAnnotationLevelFailure
+	case tfjson.DiagnosticSeverityWarning:
 		finalStr = githubv4.CheckAnnotationLevelWarning
 	default:
 		finalStr = githubv4.CheckAnnotationLevelWarning

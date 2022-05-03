@@ -2,13 +2,15 @@ package terraform
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os/exec"
-	"strconv"
 	"strings"
 
 	"github.com/hashicorp/terraform-exec/tfexec"
+	tfjson "github.com/hashicorp/terraform-json"
 	"github.com/rs/zerolog/log"
+	"github.com/terraform-linters/tflint/formatter"
 )
 
 const terraformPath = "terraform"
@@ -22,22 +24,39 @@ func CheckTfFmt(dir string) (bool, string) {
 	return tfFormat(tf)
 }
 
-func CheckTfValidate(dir string) (bool, string) {
-	ok, output, tf := tfInit(dir)
-	if !ok {
-		return ok, output
+func CheckTfValidate(dir string) (bool, string, *tfjson.ValidateOutput) {
+	if ok, output, _ := tfInit(dir); !ok {
+		return ok, output, nil
 	}
 
-	return tfValidate(tf)
+	ok, output := tfValidate(dir, false)
+	_, outputJSON := tfValidate(dir, true)
+
+	var outJSON tfjson.ValidateOutput
+	if err := json.Unmarshal([]byte(outputJSON), &outJSON); err != nil {
+		log.Error().Err(err).Msg("error unmarshalling terraform validate output")
+		return false, output, nil
+	}
+
+	return ok, output, &outJSON
 }
 
-func CheckTfLint(dir string) (bool, string) {
-	ok, output, tf := tfInit(dir)
+func CheckTfLint(dir string) (bool, string, *formatter.JSONOutput) {
+	ok, output, _ := tfInit(dir)
 	if !ok {
-		return ok, output
+		return ok, output, nil
 	}
 
-	return tfValidate(tf)
+	ok, out := tfLint(dir, "default")
+	_, outJSONStr := tfLint(dir, "json")
+
+	var outJSON formatter.JSONOutput
+	if err := json.Unmarshal([]byte(outJSONStr), &outJSON); err != nil {
+		log.Error().Err(err).Msg("error unmarshalling tflint output")
+		return false, out, nil
+	}
+
+	return ok, out, &outJSON
 }
 
 func tfInit(dir string) (bool, string, *tfexec.Terraform) {
@@ -57,28 +76,15 @@ func tfInit(dir string) (bool, string, *tfexec.Terraform) {
 	return true, "", tf
 }
 
-func tfValidate(tf *tfexec.Terraform) (bool, string) {
-	validationError, err := tf.Validate(context.Background())
-	if err != nil {
-		log.Error().Err(err).Msg("error running terraform validate")
-		return false, "Error running `terraform validate` " + err.Error()
+func tfValidate(dir string, json bool) (bool, string) {
+	args := []string{"validate", "-no-color"}
+	if json {
+		args = append(args, "-json")
 	}
-	if validationError.ErrorCount != 0 {
-		errorString := ""
-		for _, diag := range validationError.Diagnostics {
-			errorString += "`" + diag.Range.Filename + "` line:`" + strconv.Itoa(diag.Range.Start.Line) + "`"
-			errorString += "\n"
-			errorString += diag.Summary
-			errorString += "\n"
-			errorString += diag.Detail
-			errorString += "\n"
-			errorString += "\n"
-		}
-		errorString += "\n"
-		return false, ("The command `terraform validate` is failing on your repo with the following errors\n" + errorString +
-			"\nYou can reproduce locally by executing `terraform init -backend=false;terraform validate`")
-	}
-	return true, ""
+	cmd := exec.Command("terraform", args...) // #nosec
+	cmd.Dir = dir
+	out, err := cmd.CombinedOutput()
+	return err == nil, string(out)
 }
 
 func tfFormat(tf *tfexec.Terraform) (bool, string) {

@@ -62,7 +62,7 @@ func TestCheckTfValidate(t *testing.T) {
 		tc := tc
 		t.Run(tc.directory, func(t *testing.T) {
 			t.Parallel()
-			ok, msg := terraform.CheckTfValidate(path.Join(testDir, tc.directory))
+			ok, msg, _ := terraform.CheckTfValidate(path.Join(testDir, tc.directory))
 			if ok != tc.output {
 				t.Errorf("CheckTfDir failed for dir %v, expected %v, got %v, message %v", tc.directory, tc.output, ok, msg)
 			}
