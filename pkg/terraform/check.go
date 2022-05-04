@@ -44,13 +44,23 @@ func TfCheckTypeFromString(s string) TfCheckType {
 	}
 }
 
+func AllTfCheckTypes() []string {
+	return []string{
+		Fmt.String(),
+		Validate.String(),
+		TFLint.String(),
+	}
+}
+
 // TfCheck interface defines all functions that should be present for any TfCheck.
 type TfCheck interface {
 	Name() string
 	Type() TfCheckType
-	Run() (bool, string)
+	Run()
 	Dir() string
 	RelDir() string
+	IsOK() bool
+	Output() string
 	FailureConclusion() githubv4.CheckConclusionState
 	FixActions() []*github.CheckRunAction
 	Annotations() []*github.CheckRunAnnotation
@@ -60,6 +70,7 @@ type TfCheckFields struct {
 	dir     string
 	relDir  string
 	checkOk bool
+	output  string
 }
 
 func NewTfCheckFields(dir, relDir string) TfCheckFields {
@@ -75,6 +86,14 @@ func (t *TfCheckFields) Dir() string {
 
 func (t *TfCheckFields) RelDir() string {
 	return t.relDir
+}
+
+func (t *TfCheckFields) IsOK() bool {
+	return t.checkOk
+}
+
+func (t *TfCheckFields) Output() string {
+	return t.output
 }
 
 // Fmt
@@ -97,8 +116,10 @@ func (t *TfCheckFmt) Type() TfCheckType {
 	return Fmt
 }
 
-func (t *TfCheckFmt) Run() (bool, string) {
-	return CheckTfFmt(t.dir)
+func (t *TfCheckFmt) Run() {
+	ok, out := CheckTfFmt(t.dir)
+	t.checkOk = ok
+	t.output = out
 }
 
 func (t *TfCheckFmt) FailureConclusion() githubv4.CheckConclusionState {
@@ -142,10 +163,11 @@ func (t *TfCheckValidate) Type() TfCheckType {
 	return Validate
 }
 
-func (t *TfCheckValidate) Run() (bool, string) {
+func (t *TfCheckValidate) Run() {
 	ok, out, tfValidateOutput := CheckTfValidate(t.dir)
+	t.checkOk = ok
+	t.output = out
 	t.tfValidateOutput = tfValidateOutput
-	return ok, out
 }
 
 func (t *TfCheckValidate) FailureConclusion() githubv4.CheckConclusionState {
@@ -216,10 +238,11 @@ func (t *TfCheckTfLint) Type() TfCheckType {
 	return TFLint
 }
 
-func (t *TfCheckTfLint) Run() (bool, string) {
+func (t *TfCheckTfLint) Run() {
 	ok, out, tfLintOutput := CheckTfLint(t.dir)
+	t.checkOk = ok
+	t.output = out
 	t.tfLintOutput = tfLintOutput
-	return ok, out
 }
 
 func (t *TfCheckTfLint) FailureConclusion() githubv4.CheckConclusionState {
@@ -278,22 +301,9 @@ func NewTfCheck(checkType TfCheckType, tfDir, relDir string) TfCheck {
 	}
 }
 
-func GetAllTfChecks(tfDir, relDir string) (checks []TfCheck) {
-	return []TfCheck{
-		NewTfCheckFmt(tfDir, relDir),
-		NewTfCheckValidate(tfDir, relDir),
-		NewTfCheckTfLint(tfDir, relDir),
-	}
-}
-
 func GetTfChecks(tfDir, relDir string, checkTypes []string) (checks []TfCheck) {
-	if len(checkTypes) > 0 {
-		for _, c := range checkTypes {
-			checks = append(checks, NewTfCheck(TfCheckTypeFromString(c), tfDir, relDir))
-		}
-		return
+	for _, c := range checkTypes {
+		checks = append(checks, NewTfCheck(TfCheckTypeFromString(c), tfDir, relDir))
 	}
-
-	checks = append(checks, GetAllTfChecks(tfDir, relDir)...)
 	return
 }
