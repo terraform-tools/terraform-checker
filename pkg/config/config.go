@@ -57,7 +57,7 @@ func validateConfig(c *Config) []error {
 	}
 
 	if c.SubFolderParallelism == 0 {
-		c.SubFolderParallelism = 1
+		errs = append(errs, errors.ConfigNotValidError("you must provide sub_folder_parallelism field"))
 	}
 	return errs
 }
