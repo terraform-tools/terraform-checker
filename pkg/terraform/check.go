@@ -1,11 +1,10 @@
 package terraform
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/google/go-github/v43/github"
-	"github.com/rs/zerolog/log"
+	tfjson "github.com/hashicorp/terraform-json"
 	"github.com/shurcooL/githubv4"
 	"github.com/terraform-linters/tflint/formatter"
 )
@@ -126,11 +125,12 @@ func (t *TfCheckFmt) Annotations() (annotations []*github.CheckRunAnnotation) {
 
 type TfCheckValidate struct {
 	TfCheckFields
+	tfValidateOutput *tfjson.ValidateOutput
 }
 
 func NewTfCheckValidate(tfDir, relDir string) *TfCheckValidate {
 	return &TfCheckValidate{
-		NewTfCheckFields(tfDir, relDir),
+		TfCheckFields: NewTfCheckFields(tfDir, relDir),
 	}
 }
 
@@ -143,7 +143,9 @@ func (t *TfCheckValidate) Type() TfCheckType {
 }
 
 func (t *TfCheckValidate) Run() (bool, string) {
-	return CheckTfValidate(t.dir)
+	ok, out, tfValidateOutput := CheckTfValidate(t.dir)
+	t.tfValidateOutput = tfValidateOutput
+	return ok, out
 }
 
 func (t *TfCheckValidate) FailureConclusion() githubv4.CheckConclusionState {
@@ -155,14 +157,49 @@ func (t *TfCheckValidate) FixActions() (actions []*github.CheckRunAction) {
 }
 
 func (t *TfCheckValidate) Annotations() (annotations []*github.CheckRunAnnotation) {
-	return
+	if t.tfValidateOutput == nil || t.tfValidateOutput.Valid || t.tfValidateOutput.Diagnostics == nil {
+		return
+	}
+
+	for _, diag := range t.tfValidateOutput.Diagnostics {
+		currentDiag := diag
+
+		if currentDiag.Range.Filename == "" {
+			continue
+		}
+
+		newAnnotation := github.CheckRunAnnotation{
+			Title:           github.String(currentDiag.Summary),
+			Message:         &currentDiag.Detail,
+			Path:            github.String(fmt.Sprintf("%s/%s", t.RelDir(), currentDiag.Range.Filename)),
+			AnnotationLevel: TfValidateSeverityToAnnotationLevel(currentDiag.Severity),
+		}
+
+		// Only set StarLine/EndLine if they are different from 0
+		if currentDiag.Range.Start.Line == 0 && currentDiag.Range.End.Line == 0 {
+			continue
+		}
+
+		newAnnotation.StartLine = github.Int(currentDiag.Range.Start.Line)
+		newAnnotation.EndLine = github.Int(currentDiag.Range.End.Line)
+
+		// Only set StarColumn/EndColumn if StartLine/Endline are on same line
+		if newAnnotation.StartLine == newAnnotation.EndLine {
+			newAnnotation.StartColumn = github.Int(currentDiag.Range.Start.Column)
+			newAnnotation.EndColumn = github.Int(currentDiag.Range.End.Column)
+		}
+
+		annotations = append(annotations, &newAnnotation)
+	}
+
+	return annotations
 }
 
 // TFLint
 
 type TfCheckTfLint struct {
 	TfCheckFields
-	tfLintOutput formatter.JSONOutput
+	tfLintOutput *formatter.JSONOutput
 }
 
 func NewTfCheckTfLint(tfDir, relDir string) *TfCheckTfLint {
@@ -180,16 +217,8 @@ func (t *TfCheckTfLint) Type() TfCheckType {
 }
 
 func (t *TfCheckTfLint) Run() (bool, string) {
-	ok, out := tfLint(t.dir, "default")
-	_, outJSONStr := tfLint(t.dir, "json")
-
-	var outJSON formatter.JSONOutput
-	if err := json.Unmarshal([]byte(outJSONStr), &outJSON); err != nil {
-		log.Error().Err(err).Msg("error unmarshalling tflint output")
-		return false, out
-	}
-	t.tfLintOutput = outJSON
-
+	ok, out, tfLintOutput := CheckTfLint(t.dir)
+	t.tfLintOutput = tfLintOutput
 	return ok, out
 }
 

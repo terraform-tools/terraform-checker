@@ -44,12 +44,13 @@ type GhCheckRun struct {
 
 type CheckEvent struct {
 	GenericGithubEvent
-	repo     Repo
-	sha      string
-	token    string
-	branch   string
-	prURL    string
-	ghClient *github.Client
+	repo                 Repo
+	sha                  string
+	token                string
+	branch               string
+	prURL                string
+	ghClient             *github.Client
+	subFolderParallelism int
 }
 
 func (c *CheckEvent) GetRepo() *Repo {
@@ -108,13 +109,14 @@ func NewCheckEvent(clientCreator githubapp.ClientCreator, event GenericGithubEve
 	}
 
 	return &CheckEvent{
-		GenericGithubEvent: event,
-		repo:               repo,
-		sha:                event.GetHeadSHA(),
-		token:              token.GetToken(),
-		branch:             event.GetHeadBranch(),
-		ghClient:           client,
-		prURL:              event.PrURL(),
+		GenericGithubEvent:   event,
+		repo:                 repo,
+		sha:                  event.GetHeadSHA(),
+		token:                token.GetToken(),
+		branch:               event.GetHeadBranch(),
+		ghClient:             client,
+		prURL:                event.PrURL(),
+		subFolderParallelism: config.SubFolderParallelism,
 	}, nil
 }
 
@@ -125,7 +127,7 @@ type GenericGithubEvent interface {
 	GetRepo() Repo
 	GetHeadSHA() string
 	GetHeadBranch() string
-	IsValid() bool
+	IsValid(*config.Config) bool
 	PrURL() string
 	ExternalID() string
 }
@@ -151,7 +153,11 @@ func (e CheckSuiteEvent) GetHeadBranch() string {
 	return e.GetCheckSuite().GetHeadBranch()
 }
 
-func (e CheckSuiteEvent) IsValid() bool {
+func (e CheckSuiteEvent) IsValid(c *config.Config) bool {
+	if e.GetCheckSuite().GetApp().GetID() != c.GithubHubAppConfig.App.IntegrationID {
+		log.Debug().Msgf("Discarding event check_suite: not related to this github app")
+		return false
+	}
 	if !utils.StrInSlice(getAuthorizedCheckSuiteActions(), e.GetAction()) {
 		log.Debug().Msgf("Discarding event check_suite %s", e.GetAction())
 		return false
@@ -188,7 +194,11 @@ func (e CheckRunEvent) GetHeadBranch() string {
 	return e.GetCheckRun().GetCheckSuite().GetHeadBranch()
 }
 
-func (e CheckRunEvent) IsValid() bool {
+func (e CheckRunEvent) IsValid(c *config.Config) bool {
+	if e.GetCheckRun().GetApp().GetID() != c.GithubHubAppConfig.App.IntegrationID {
+		log.Debug().Msgf("Discarding event check_run: not related to this github app")
+		return false
+	}
 	if !utils.StrInSlice(getAuthorizedCheckRunActions(), e.GetAction()) {
 		log.Debug().Msgf("Discarding event check_suite %s", e.GetAction())
 		return false
@@ -224,7 +234,7 @@ func (e PullRequestEvent) GetHeadBranch() string {
 	return e.GetPullRequest().GetHead().GetRef()
 }
 
-func (e PullRequestEvent) IsValid() bool {
+func (e PullRequestEvent) IsValid(c *config.Config) bool {
 	if !utils.StrInSlice(getAuthorizedPullRequestActions(), e.GetAction()) {
 		log.Debug().Msgf("Discarding event pull_request %s", e.GetAction())
 		return false

@@ -77,7 +77,8 @@ func (h *CheckHandler) getCheckSuiteEvent(payload []byte) (bool, *CheckEvent) {
 	}
 
 	newEvent, err := NewCheckEvent(h.Client, CheckSuiteEvent{&event}, h.Config)
-	return err == nil && newEvent.IsValid(), newEvent
+
+	return err == nil && newEvent.IsValid(h.Config), newEvent
 }
 
 func (h *CheckHandler) getCheckRunEvent(payload []byte) (bool, *CheckEvent) {
@@ -88,7 +89,7 @@ func (h *CheckHandler) getCheckRunEvent(payload []byte) (bool, *CheckEvent) {
 	}
 
 	newEvent, err := NewCheckEvent(h.Client, CheckRunEvent{&event}, h.Config)
-	return err == nil && newEvent.IsValid(), newEvent
+	return err == nil && newEvent.IsValid(h.Config), newEvent
 }
 
 func (h *CheckHandler) getPullRequestEvent(payload []byte) (bool, *CheckEvent) {
@@ -99,7 +100,7 @@ func (h *CheckHandler) getPullRequestEvent(payload []byte) (bool, *CheckEvent) {
 	}
 
 	newEvent, err := NewCheckEvent(h.Client, PullRequestEvent{&event}, h.Config)
-	return err == nil && newEvent.IsValid(), newEvent
+	return err == nil && newEvent.IsValid(h.Config), newEvent
 }
 
 func (h *CheckHandler) computeFilters(ctx context.Context, event *CheckEvent) (dirFilters []filter.Option, checkTypeFilter []filter.Option) {

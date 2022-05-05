@@ -12,9 +12,10 @@ import (
 )
 
 type Config struct {
-	GithubHubAppConfig githubapp.Config `yaml:"github_app_config" json:"github_app_config"`         //nolint:tagliatelle
-	GHRepoTopic        string           `yaml:"github_repo_topic" json:"github_repo_topic"`         //nolint:tagliatelle
-	GHRepoWhitelist    []string         `yaml:"github_repo_whitelist" json:"github_repo_whitelist"` //nolint:tagliatelle
+	GithubHubAppConfig   githubapp.Config `yaml:"github_app_config" json:"github_app_config"`           //nolint:tagliatelle
+	GHRepoTopic          string           `yaml:"github_repo_topic" json:"github_repo_topic"`           //nolint:tagliatelle
+	GHRepoWhitelist      []string         `yaml:"github_repo_whitelist" json:"github_repo_whitelist"`   //nolint:tagliatelle
+	SubFolderParallelism int              `yaml:"sub_folder_parallelism" json:"sub_folder_parallelism"` //nolint:tagliatelle
 }
 
 func LoadConfig() *Config {
@@ -32,7 +33,7 @@ func LoadConfig() *Config {
 		log.Fatal().Err(err).Msg("Error Unmarshal config file")
 	}
 
-	errors := validateConfig(newConfig)
+	errors := validateConfig(&newConfig)
 	if len(errors) > 0 {
 		log.Fatal().Errs("errors", errors).Msg("config validation error")
 	}
@@ -40,7 +41,7 @@ func LoadConfig() *Config {
 	return &newConfig
 }
 
-func validateConfig(c Config) []error {
+func validateConfig(c *Config) []error {
 	errs := []error{}
 
 	if c.GithubHubAppConfig.WebURL == "" && c.GithubHubAppConfig.V3APIURL == "" && c.GithubHubAppConfig.V4APIURL == "" {
@@ -53,6 +54,10 @@ func validateConfig(c Config) []error {
 
 	if c.GithubHubAppConfig.OAuth.ClientID == "" || c.GithubHubAppConfig.OAuth.ClientSecret == "" {
 		errs = append(errs, errors.ConfigNotValidError("you must provide client_id / client_secret in github_app_config.oauth field"))
+	}
+
+	if c.SubFolderParallelism == 0 {
+		errs = append(errs, errors.ConfigNotValidError("you must provide sub_folder_parallelism field"))
 	}
 	return errs
 }
