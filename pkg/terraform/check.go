@@ -62,7 +62,7 @@ type TfCheck interface {
 	IsOK() bool
 	Output() string
 	FailureConclusion() githubv4.CheckConclusionState
-	FixActions() []*github.CheckRunAction
+	FixAction() *github.CheckRunAction
 	Annotations() []*github.CheckRunAnnotation
 }
 
@@ -126,16 +126,15 @@ func (t *TfCheckFmt) FailureConclusion() githubv4.CheckConclusionState {
 	return githubv4.CheckConclusionStateFailure
 }
 
-func (t *TfCheckFmt) FixActions() (actions []*github.CheckRunAction) {
-	actions = append(actions, &github.CheckRunAction{
+func (t *TfCheckFmt) FixAction() *github.CheckRunAction {
+	return &github.CheckRunAction{
 		// Max length 20 characters
 		Label: "Trigger tf fmt",
 		// Max length 40 characters
 		Description: "Add a terraform fmt commit",
 		// Max length 20 characters
 		Identifier: t.Name(),
-	})
-	return
+	}
 }
 
 func (t *TfCheckFmt) Annotations() (annotations []*github.CheckRunAnnotation) {
@@ -174,8 +173,8 @@ func (t *TfCheckValidate) FailureConclusion() githubv4.CheckConclusionState {
 	return githubv4.CheckConclusionStateFailure
 }
 
-func (t *TfCheckValidate) FixActions() (actions []*github.CheckRunAction) {
-	return
+func (t *TfCheckValidate) FixAction() *github.CheckRunAction {
+	return nil
 }
 
 func (t *TfCheckValidate) Annotations() (annotations []*github.CheckRunAnnotation) {
@@ -249,8 +248,8 @@ func (t *TfCheckTfLint) FailureConclusion() githubv4.CheckConclusionState {
 	return githubv4.CheckConclusionStateFailure
 }
 
-func (t *TfCheckTfLint) FixActions() (actions []*github.CheckRunAction) {
-	return
+func (t *TfCheckTfLint) FixAction() *github.CheckRunAction {
+	return nil
 }
 
 func (t *TfCheckTfLint) Annotations() (annotations []*github.CheckRunAnnotation) {
