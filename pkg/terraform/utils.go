@@ -3,7 +3,6 @@ package terraform
 import (
 	"io/fs"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/google/go-github/v43/github"
@@ -11,19 +10,21 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/shurcooL/githubv4"
 	"github.com/terraform-linters/tflint/tflint"
+	"github.com/terraform-tools/terraform-checker/pkg/utils"
 )
 
 // FindAllTfDir finds all of the terraform directory inside a directory.
 func FindAllTfDir(dir string) (out []string) {
-	regex := regexp.MustCompile("terraform.*")
 	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
 		if d.IsDir() {
-			if d.Name() == ".git" {
-				return filepath.SkipDir
-			} else if regex.MatchString(d.Name()) {
-				out = append(out, path)
+			if d.Name() == ".git" || d.Name() == ".terraform" {
 				return filepath.SkipDir
 			}
+		}
+
+		currentPath := filepath.Dir(path)
+		if strings.HasSuffix(path, ".tf") && !utils.StrInSlice(out, currentPath) {
+			out = append(out, currentPath)
 		}
 		return nil
 	})

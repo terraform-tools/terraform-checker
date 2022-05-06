@@ -18,6 +18,7 @@ func CloneRepo(repoName string, hash string, headBranch string, ghToken string) 
 		return nil, "", err
 	}
 
+	log.Debug().Msgf("Cloning repo %s into %s ...", repoName, dir)
 	repo, err := git.PlainClone(dir, false, &git.CloneOptions{
 		URL: "https://x-access-token:" + ghToken + "@github.com/" + repoName,
 	})
