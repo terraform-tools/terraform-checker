@@ -3,6 +3,7 @@ package github
 import (
 	"context"
 	"encoding/json"
+	"strings"
 
 	"github.com/rs/zerolog/log"
 	"github.com/terraform-tools/terraform-checker/pkg/config"
@@ -51,17 +52,21 @@ func (h *CheckHandler) Handle(ctx context.Context, eventType, deliveryID string,
 	switch e := event.GenericGithubEvent.(type) {
 	case CheckRunEvent:
 		// If the current event is a CheckRun, we need to compute filters
-		dirFilters, checkTypeFilter = h.computeFilters(ctx, event)
+		// dirFilters, checkTypeFilter = h.computeFilters(ctx, event)
 
 		// If the current event is a requested action, execute it
 		if e.GetRequestedAction() != nil {
 			switch e.GetRequestedAction().Identifier {
-			case "fmt":
-				return event.fixFmt(dirFilters)
+			case terraform.Fmt.String():
+				return event.fixFmt()
 			default:
-				return nil
 			}
 		}
+
+		if e.GetAction() == "rerequested" {
+			checkTypeFilter = append(checkTypeFilter, &filter.TfCheckTypeFilter{TfCheckTypes: []string{strings.ReplaceAll(e.GetCheckRun().GetName(), checkRunNamePrefix, "")}})
+		}
+
 	default:
 	}
 
@@ -101,23 +106,4 @@ func (h *CheckHandler) getPullRequestEvent(payload []byte) (bool, *CheckEvent) {
 
 	newEvent, err := NewCheckEvent(h.Client, PullRequestEvent{&event}, h.Config)
 	return err == nil && newEvent.IsValid(h.Config), newEvent
-}
-
-func (h *CheckHandler) computeFilters(ctx context.Context, event *CheckEvent) (dirFilters []filter.Option, checkTypeFilter []filter.Option) {
-	externalID := event.ExternalID()
-	dir, checkType, err := decodeExternalID(externalID)
-	if err != nil {
-		return []filter.Option{}, []filter.Option{}
-	}
-
-	return []filter.Option{
-			&filter.DirFilter{
-				Dir: dir,
-			},
-		},
-		[]filter.Option{
-			&filter.TfCheckTypeFilter{
-				TfCheckTypes: []string{checkType},
-			},
-		}
 }

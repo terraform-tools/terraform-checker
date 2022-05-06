@@ -12,20 +12,20 @@ import (
 	"github.com/terraform-tools/terraform-checker/pkg/terraform"
 )
 
-func (e *CheckEvent) CreateCheckRun(check terraform.TfCheck) (GhCheckRun, error) {
-	checkRunName := fmt.Sprintf("terraform-check %v %v", check.Name(), check.RelDir())
+const checkRunNamePrefix = "terraform-check "
+
+func (e *CheckEvent) CreateAggregatedCheckRun(checkType terraform.TfCheckType) (GhCheckRun, error) {
+	checkRunName := fmt.Sprintf("%s%v", checkRunNamePrefix, checkType.String())
 	log.Info().Msgf("Create check run %s on repo %s PR %s", checkRunName, e.GetRepo().GetFullName(), e.GetPRURL())
 
-	externalID := encodeExternalID(check)
 	cr, _, err := e.GetGhClient().Checks.CreateCheckRun(context.TODO(),
 		e.GetRepo().GetOwner().GetLogin(),
 		e.GetRepo().GetName(),
 		github.CreateCheckRunOptions{
-			Name:       checkRunName,
-			HeadSHA:    e.GetSHA(),
-			Status:     github.String(strings.ToLower(string(githubv4.CheckStatusStateInProgress))),
-			StartedAt:  &github.Timestamp{Time: time.Now()},
-			ExternalID: github.String(externalID),
+			Name:      checkRunName,
+			HeadSHA:   e.GetSHA(),
+			Status:    github.String(strings.ToLower(string(githubv4.CheckStatusStateInProgress))),
+			StartedAt: &github.Timestamp{Time: time.Now()},
 		})
 	if err != nil {
 		log.Error().Err(err).Msg("Error creating check run")
@@ -38,36 +38,54 @@ func (e *CheckEvent) CreateCheckRun(check terraform.TfCheck) (GhCheckRun, error)
 	}, nil
 }
 
-func (e *CheckEvent) UpdateCheckRun(cr GhCheckRun, conclusion githubv4.CheckConclusionState, cmdOutput string, check terraform.TfCheck) {
-	checkStatus := fmt.Sprintf("**Check Status:**  %s", CheckConclusionStateEmoji(conclusion))
+func (e *CheckEvent) UpdateAggregatedCheckRun(cr GhCheckRun, checks []terraform.TfCheck) {
+	var action *github.CheckRunAction
+	checkRunState := githubv4.CheckConclusionStateSuccess
+	annotations := []*github.CheckRunAnnotation{}
+	outputText := ""
+
+	for _, check := range checks {
+		if !check.IsOK() {
+			checkRunState = githubv4.CheckConclusionStateFailure
+			action = check.FixAction()
+		}
+
+		annotations = append(annotations, check.Annotations()...)
+		if currentOutput := check.Output(); currentOutput != "" {
+			outputText += fmt.Sprintf("**%s:**\n```shell\n%s\n```\n", check.RelDir(), currentOutput)
+		}
+	}
+
+	checkStatus := fmt.Sprintf("**Check Status:**  %s", CheckConclusionStateEmoji(checkRunState))
 
 	cro := github.CheckRunOutput{
 		Title:       &cr.Name,
 		Summary:     &checkStatus,
-		Annotations: check.Annotations(),
+		Annotations: annotations,
 	}
-	if cmdOutput != "" {
-		cro.Text = github.String(fmt.Sprintf("```shell\n%s\n```", cmdOutput))
+	if outputText != "" {
+		cro.Text = &outputText
 	}
 
-	actions := []*github.CheckRunAction{}
-	if conclusion != githubv4.CheckConclusionStateSuccess {
-		actions = check.FixActions()
+	updateCheckRunOption := github.UpdateCheckRunOptions{
+		Name:        cr.Name,
+		Status:      github.String(strings.ToLower(string(githubv4.CheckStatusStateCompleted))),
+		Output:      &cro,
+		Conclusion:  github.String(strings.ToLower(string(checkRunState))),
+		CompletedAt: &github.Timestamp{Time: time.Now()},
+	}
+	if action != nil {
+		updateCheckRunOption.Actions = []*github.CheckRunAction{action}
 	}
 
 	log.Info().Msgf("Update check run %s on repo %s PR %s", cr.Name, e.GetRepo().GetFullName(), e.GetPRURL())
-	_, _, err := e.GetGhClient().Checks.UpdateCheckRun(context.TODO(),
+	_, _, err := e.GetGhClient().Checks.UpdateCheckRun(
+		context.TODO(),
 		e.GetRepo().GetOwner().GetLogin(),
 		e.GetRepo().GetName(),
 		cr.ID,
-		github.UpdateCheckRunOptions{
-			Name:        cr.Name,
-			Status:      github.String(strings.ToLower(string(githubv4.CheckStatusStateCompleted))),
-			Output:      &cro,
-			Conclusion:  github.String(strings.ToLower(string(conclusion))),
-			CompletedAt: &github.Timestamp{Time: time.Now()},
-			Actions:     actions,
-		})
+		updateCheckRunOption,
+	)
 	if err != nil {
 		log.Error().Err(err).Msg("Error updating check run")
 	}

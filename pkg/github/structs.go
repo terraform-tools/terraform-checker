@@ -129,13 +129,11 @@ type GenericGithubEvent interface {
 	GetHeadBranch() string
 	IsValid(*config.Config) bool
 	PrURL() string
-	ExternalID() string
 }
 
 // Rename external struct to be able to extend them with interface func.
-type CheckSuiteEvent struct{ *github.CheckSuiteEvent }
-
 type (
+	CheckSuiteEvent  struct{ *github.CheckSuiteEvent }
 	CheckRunEvent    struct{ *github.CheckRunEvent }
 	PullRequestEvent struct{ *github.PullRequestEvent }
 )
@@ -177,10 +175,6 @@ func (e CheckSuiteEvent) PrURL() string {
 	return ""
 }
 
-func (e CheckSuiteEvent) ExternalID() string {
-	return ""
-}
-
 // CheckRunEvent.
 func (e CheckRunEvent) GetRepo() Repo {
 	return Repo{e.Repo}
@@ -217,10 +211,6 @@ func (e CheckRunEvent) PrURL() string {
 	return ""
 }
 
-func (e CheckRunEvent) ExternalID() string {
-	return e.GetCheckRun().GetExternalID()
-}
-
 // PullRequestEvent.
 func (e PullRequestEvent) GetRepo() Repo {
 	return Repo{e.Repo}
@@ -244,8 +234,4 @@ func (e PullRequestEvent) IsValid(c *config.Config) bool {
 
 func (e PullRequestEvent) PrURL() string {
 	return e.GetPullRequest().GetURL()
-}
-
-func (e PullRequestEvent) ExternalID() string {
-	return ""
 }
