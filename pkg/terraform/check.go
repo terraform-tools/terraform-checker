@@ -253,6 +253,9 @@ func (t *TfCheckTfLint) FixAction() *github.CheckRunAction {
 }
 
 func (t *TfCheckTfLint) Annotations() (annotations []*github.CheckRunAnnotation) {
+	if t.tfLintOutput == nil {
+		return
+	}
 	for _, issue := range t.tfLintOutput.Issues {
 		currentIssue := issue
 
