@@ -18,7 +18,7 @@ COPY terraform-checker /go/bin/terraform-checker
 RUN apk add curl git openssh unzip
 
 # Simple tfswitch
-RUN curl -Ls https://github.com/terraform-tools/simple-tfswitch/releases/download/0.1.3/simple-tfswitch_0.1.3_Linux_x86_64.tar.gz | tar xzf - -C /usr/local/bin
+RUN curl -Ls https://github.com/terraform-tools/simple-tfswitch/releases/download/0.1.4/simple-tfswitch_0.1.4_Linux_x86_64.tar.gz | tar xzf - -C /usr/local/bin
 RUN mv /usr/local/bin/simple-tfswitch /usr/local/bin/terraform
 
 # Tflint
