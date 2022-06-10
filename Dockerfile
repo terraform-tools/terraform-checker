@@ -22,7 +22,10 @@ RUN curl -Ls https://github.com/terraform-tools/simple-tfswitch/releases/downloa
 RUN mv /usr/local/bin/simple-tfswitch /usr/local/bin/terraform
 
 # Tflint
-RUN curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | sh
+ENV TFLINT_VERSION v0.37.0
+RUN wget https://github.com/terraform-linters/tflint/releases/download/${TFLINT_VERSION}/tflint_linux_amd64.zip -O /tmp/tflint.zip && \
+    unzip /tmp/tflint.zip -d /bin && \
+    rm /tmp/tflint.zip
 
 # App user
 RUN mkdir -p /home/appuser && chown appuser:appuser /home/appuser
