@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-exec/tfexec"
 	tfjson "github.com/hashicorp/terraform-json"
 	"github.com/rs/zerolog/log"
+	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 	"github.com/terraform-linters/tflint/formatter"
 )
 
@@ -56,7 +57,7 @@ func CheckTfLint(dir string) (bool, string, *formatter.JSONOutput) {
 		return false, out, nil
 	}
 
-	return ok, out, &outJSON
+	return tfLintStatus(&outJSON), out, &outJSON
 }
 
 func tfInit(dir string) (bool, string, *tfexec.Terraform) {
@@ -113,4 +114,16 @@ func tfLintInit() (bool, string) {
 	cmd := exec.Command("tflint", []string{"--init"}...) // #nosec
 	out, err := cmd.CombinedOutput()
 	return err == nil, string(out)
+}
+
+func tfLintStatus(out *formatter.JSONOutput) bool {
+	if len(out.Errors) > 0 {
+		return false
+	}
+	for _, i := range out.Issues {
+		if i.Rule.Severity == tflint.ERROR.String() {
+			return false
+		}
+	}
+	return true
 }
