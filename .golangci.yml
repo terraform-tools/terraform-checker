@@ -17,7 +17,6 @@ linters:
   - errorlint
   - exhaustive
   - exportloopref
-  - forbidigo
   - forcetypeassert
   - funlen
   - gochecknoglobals

@@ -3,6 +3,7 @@ module github.com/terraform-tools/terraform-checker
 go 1.18
 
 require (
+	github.com/fatih/color v1.13.0
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/google/go-github/v43 v43.0.0
 	github.com/hashicorp/terraform-exec v0.16.0
@@ -10,6 +11,7 @@ require (
 	github.com/palantir/go-githubapp v0.12.1
 	github.com/rs/zerolog v1.26.1
 	github.com/shurcooL/githubv4 v0.0.0-20220115235240-a14260e6f8a2
+	github.com/spf13/cobra v1.6.0
 	github.com/terraform-linters/tflint v0.35.0
 	gopkg.in/yaml.v2 v2.4.0
 )
@@ -29,7 +31,6 @@ require (
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
 	github.com/bradleyfalzon/ghinstallation/v2 v2.0.4 // indirect
 	github.com/emirpasic/gods v1.12.0 // indirect
-	github.com/fatih/color v1.13.0 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.3.1 // indirect
 	github.com/golang-jwt/jwt/v4 v4.4.1 // indirect
@@ -53,6 +54,7 @@ require (
 	github.com/hashicorp/hcl/v2 v2.11.1 // indirect
 	github.com/hashicorp/terraform-svchost v0.0.0-20200729002733-f050f53b9734 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
+	github.com/inconshreveable/mousetrap v1.0.1 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/jstemmer/go-junit-report v1.0.0 // indirect
@@ -69,6 +71,7 @@ require (
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a // indirect
 	github.com/spf13/afero v1.8.2 // indirect
+	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/terraform-linters/tflint-plugin-sdk v0.10.0 // indirect
 	github.com/ulikunitz/xz v0.5.8 // indirect
 	github.com/xanzy/ssh-agent v0.3.1 // indirect

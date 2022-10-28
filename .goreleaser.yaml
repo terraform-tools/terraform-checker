@@ -14,6 +14,11 @@ builds:
     ldflags:
       - -s
       - -w
+      - -X github.com/terraform-tools/terraform-checker/cmd.commit={{ .FullCommit }}
+      - -X github.com/terraform-tools/terraform-checker/cmd.version={{ .Version }}
+      - -X main.buildTime={{ .Date }}
+      - -X main.buildRevision={{ .FullCommit }}
+      - -X main.buildTag={{ .Version }}
 
 dockers:
   - goos: linux
