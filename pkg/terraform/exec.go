@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -65,6 +66,10 @@ func tfInit(dir string) (bool, string, *tfexec.Terraform) {
 	if err != nil {
 		log.Error().Err(err).Msg("error creating Terraform object")
 		return false, "", nil
+	}
+
+	if value, present := os.LookupEnv("TF_CHECKER_SKIP_INIT"); present && value == "true" {
+		return true, "", tf
 	}
 
 	err = tf.Init(context.Background(), tfexec.Upgrade(true), tfexec.Backend(false))
