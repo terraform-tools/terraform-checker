@@ -7,10 +7,13 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/rs/zerolog/log"
+	"github.com/terraform-tools/terraform-checker/pkg/filter"
 	"github.com/terraform-tools/terraform-checker/pkg/terraform"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
-func StartLocal(dir string, parallelism uint) {
+func StartLocal(dir string, parallelism uint, checkTypes filter.TfCheckTypeFilter) {
 	// SYNCHRONIZATION
 	// Wait group for waiting all tasks to be done in the end
 	var tasksDone sync.WaitGroup
@@ -34,7 +37,7 @@ func StartLocal(dir string, parallelism uint) {
 			defer tasksDone.Done()
 
 			relDir := strings.TrimPrefix(strings.ReplaceAll(tfDir, dir, ""), "/")
-			for _, check := range terraform.GetTfChecks(tfDir, relDir, terraform.AllTfCheckTypes()) {
+			for _, check := range terraform.GetTfChecks(tfDir, relDir, checkTypes.TfCheckTypes) {
 				check.Run()
 				if _, ok := checks[check.Dir()]; !ok {
 					checks[check.Dir()] = []terraform.TfCheck{}
@@ -59,7 +62,7 @@ func renderOutput(checks map[string][]terraform.TfCheck) {
 		color.Blue(strings.Repeat("-", len(dirLine)))
 		color.Blue(dirLine)
 		for _, check := range checks {
-			checkName := fmt.Sprintf("%s", strings.Title(check.Name()))
+			checkName := cases.Title(language.Und, cases.NoLower).String(check.Name())
 			checkTitlePrefix := "\n-- "
 			checkTitle := strings.Repeat("-", len(checkTitlePrefix)+len(checkName)+len(okSuffix))
 			checkTitle += checkTitlePrefix

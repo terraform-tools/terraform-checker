@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -13,7 +14,10 @@ import (
 	"github.com/terraform-linters/tflint/formatter"
 )
 
-const terraformPath = "terraform"
+const (
+	terraformPath               = "terraform"
+	tfCheckerSkipInitEnvVarName = "TF_CHECKER_SKIP_INIT"
+)
 
 func CheckTfFmt(dir string) (bool, string) {
 	ok, output, tf := tfInit(dir)
@@ -65,6 +69,10 @@ func tfInit(dir string) (bool, string, *tfexec.Terraform) {
 	if err != nil {
 		log.Error().Err(err).Msg("error creating Terraform object")
 		return false, "", nil
+	}
+
+	if value, present := os.LookupEnv(tfCheckerSkipInitEnvVarName); present && value == "true" {
+		return true, "", tf
 	}
 
 	err = tf.Init(context.Background(), tfexec.Upgrade(true), tfexec.Backend(false))

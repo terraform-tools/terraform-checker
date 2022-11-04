@@ -1,7 +1,6 @@
 package config
 
 import (
-	"io/ioutil"
 	"os"
 
 	"github.com/rs/zerolog/log"
@@ -24,7 +23,7 @@ func LoadConfig() *Config {
 		confLocation = "conf.yml"
 	}
 
-	data, err := ioutil.ReadFile(confLocation)
+	data, err := os.ReadFile(confLocation)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Error loading config file")
 	}
