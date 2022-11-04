@@ -1,7 +1,6 @@
 package git
 
 import (
-	"io/ioutil"
 	"os"
 	"time"
 
@@ -13,7 +12,7 @@ import (
 )
 
 func CloneRepo(repoName string, hash string, headBranch string, ghToken string) (*git.Repository, string, error) {
-	dir, err := ioutil.TempDir("", "tf-checker")
+	dir, err := os.MkdirTemp("", "tf-checker")
 	if err != nil {
 		return nil, "", err
 	}

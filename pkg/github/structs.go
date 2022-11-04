@@ -53,28 +53,28 @@ type CheckEvent struct {
 	subFolderParallelism int
 }
 
-func (c *CheckEvent) GetRepo() *Repo {
-	return &c.repo
+func (e *CheckEvent) GetRepo() *Repo {
+	return &e.repo
 }
 
-func (c *CheckEvent) GetSHA() string {
-	return c.sha
+func (e *CheckEvent) GetSHA() string {
+	return e.sha
 }
 
-func (c *CheckEvent) GetBranch() string {
-	return c.branch
+func (e *CheckEvent) GetBranch() string {
+	return e.branch
 }
 
-func (c *CheckEvent) GetToken() string {
-	return c.token
+func (e *CheckEvent) GetToken() string {
+	return e.token
 }
 
-func (c *CheckEvent) GetPRURL() string {
-	return c.prURL
+func (e *CheckEvent) GetPRURL() string {
+	return e.prURL
 }
 
-func (c *CheckEvent) GetGhClient() *github.Client {
-	return c.ghClient
+func (e *CheckEvent) GetGhClient() *github.Client {
+	return e.ghClient
 }
 
 func NewCheckEvent(clientCreator githubapp.ClientCreator, event GenericGithubEvent, config *config.Config) (*CheckEvent, error) {

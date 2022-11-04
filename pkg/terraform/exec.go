@@ -14,7 +14,10 @@ import (
 	"github.com/terraform-linters/tflint/formatter"
 )
 
-const terraformPath = "terraform"
+const (
+	terraformPath               = "terraform"
+	tfCheckerSkipInitEnvVarName = "TF_CHECKER_SKIP_INIT"
+)
 
 func CheckTfFmt(dir string) (bool, string) {
 	ok, output, tf := tfInit(dir)
@@ -68,7 +71,7 @@ func tfInit(dir string) (bool, string, *tfexec.Terraform) {
 		return false, "", nil
 	}
 
-	if value, present := os.LookupEnv("TF_CHECKER_SKIP_INIT"); present && value == "true" {
+	if value, present := os.LookupEnv(tfCheckerSkipInitEnvVarName); present && value == "true" {
 		return true, "", tf
 	}
 

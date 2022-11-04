@@ -41,7 +41,6 @@ func InitTfLint() {
 	if !ok {
 		log.Error().Msgf("error while executing tflint --init. out: %s", out)
 	}
-	return
 }
 
 // TfLintRuleSeverityToAnnotationLevel allows to convert tflint severity to github annotation level.

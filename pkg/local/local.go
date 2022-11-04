@@ -8,6 +8,8 @@ import (
 	"github.com/fatih/color"
 	"github.com/rs/zerolog/log"
 	"github.com/terraform-tools/terraform-checker/pkg/terraform"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 func StartLocal(dir string, parallelism uint) {
@@ -59,7 +61,7 @@ func renderOutput(checks map[string][]terraform.TfCheck) {
 		color.Blue(strings.Repeat("-", len(dirLine)))
 		color.Blue(dirLine)
 		for _, check := range checks {
-			checkName := fmt.Sprintf("%s", strings.Title(check.Name()))
+			checkName := cases.Title(language.Und, cases.NoLower).String(check.Name())
 			checkTitlePrefix := "\n-- "
 			checkTitle := strings.Repeat("-", len(checkTitlePrefix)+len(checkName)+len(okSuffix))
 			checkTitle += checkTitlePrefix
