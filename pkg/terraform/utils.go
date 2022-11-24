@@ -1,7 +1,9 @@
 package terraform
 
 import (
+	"fmt"
 	"io/fs"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -11,10 +13,61 @@ import (
 	"github.com/shurcooL/githubv4"
 	"github.com/terraform-linters/tflint/tflint"
 	"github.com/terraform-tools/terraform-checker/pkg/utils"
+	"gopkg.in/yaml.v3"
 )
 
+const (
+	tfDirConfigName     = ".tf-checker"
+	tfDirEnabledDefault = true
+)
+
+type TfDir struct {
+	path    string
+	enabled bool
+}
+
+func (t *TfDir) Path() string {
+	return t.path
+}
+
+func (t *TfDir) IsEnabled() bool {
+	return t.enabled
+}
+
+type TfDirConfigFile struct {
+	Enabled bool `yaml:"enabled"`
+}
+
+func parseTfDirConfig(path string) TfDirConfigFile {
+	var data []byte
+	var err error
+
+	t := TfDirConfigFile{
+		Enabled: tfDirEnabledDefault,
+	}
+
+	if data, err = os.ReadFile(path); err != nil {
+		return t
+	}
+
+	if err = yaml.Unmarshal(data, &t); err != nil {
+		log.Error().Err(err).Msgf("error while parsing tfDir config file %s", path)
+	}
+	return t
+}
+
+func NewTfDir(path string) *TfDir {
+	newTfDir := TfDir{
+		path: path,
+	}
+	conf := parseTfDirConfig(fmt.Sprintf("%s/%s", path, tfDirConfigName))
+	newTfDir.enabled = conf.Enabled
+	return &newTfDir
+}
+
 // FindAllTfDir finds all of the terraform directory inside a directory.
-func FindAllTfDir(dir string) (out []string) {
+func FindAllTfDir(dir string) (tfDirs []*TfDir) {
+	tfDirsPaths := []string{}
 	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
 		if d.IsDir() {
 			if d.Name() == ".git" || d.Name() == ".terraform" {
@@ -23,13 +76,17 @@ func FindAllTfDir(dir string) (out []string) {
 		}
 
 		currentPath := filepath.Dir(path)
-		if strings.HasSuffix(path, ".tf") && !utils.StrInSlice(out, currentPath) {
-			out = append(out, currentPath)
+		if strings.HasSuffix(path, ".tf") && !utils.StrInSlice(tfDirsPaths, currentPath) {
+			tfDirsPaths = append(tfDirsPaths, currentPath)
 		}
 		return nil
 	})
 	if err != nil {
 		log.Error().Err(err).Msg("error walking dir")
+	}
+
+	for _, t := range tfDirsPaths {
+		tfDirs = append(tfDirs, NewTfDir(t))
 	}
 
 	return

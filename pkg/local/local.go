@@ -31,13 +31,19 @@ func StartLocal(dir string, parallelism uint, checkTypes filter.TfCheckTypeFilte
 	for _, tfDir := range tfRepos {
 		tfDir := tfDir
 
+		// If tfDir is not enabled, continue
+		if !tfDir.IsEnabled() {
+			log.Debug().Msgf("TfDir %s skipped, disabled via configuration", tfDir.Path())
+			continue
+		}
+
 		currentlyRunning <- 1 // queue current task
 		tasksDone.Add(1)
 		go func() {
 			defer tasksDone.Done()
 
-			relDir := strings.TrimPrefix(strings.ReplaceAll(tfDir, dir, ""), "/")
-			for _, check := range terraform.GetTfChecks(tfDir, relDir, checkTypes.TfCheckTypes) {
+			relDir := strings.TrimPrefix(strings.ReplaceAll(tfDir.Path(), dir, ""), "/")
+			for _, check := range terraform.GetTfChecks(tfDir.Path(), relDir, checkTypes.TfCheckTypes) {
 				check.Run()
 				if _, ok := checks[check.Dir()]; !ok {
 					checks[check.Dir()] = []terraform.TfCheck{}

@@ -84,7 +84,13 @@ func (e *CheckEvent) executeChecks(dir, dirFilter string, tfCheckTypes []string)
 		tfDir := tfDir
 
 		// If dirFilter is defined and current tfDir does not match, continue
-		if dirFilter != "" && !strings.Contains(tfDir, dirFilter) {
+		if dirFilter != "" && !strings.Contains(tfDir.Path(), dirFilter) {
+			continue
+		}
+
+		// If tfDir is not enabled, continue
+		if !tfDir.IsEnabled() {
+			log.Info().Msgf("TfDir %s skipped, disabled via configuration", tfDir.Path())
 			continue
 		}
 
@@ -93,8 +99,8 @@ func (e *CheckEvent) executeChecks(dir, dirFilter string, tfCheckTypes []string)
 		go func() {
 			defer tasksDone.Done()
 
-			relDir := strings.TrimPrefix(strings.ReplaceAll(tfDir, dir, ""), "/")
-			for _, check := range terraform.GetTfChecks(tfDir, relDir, tfCheckTypes) {
+			relDir := strings.TrimPrefix(strings.ReplaceAll(tfDir.Path(), dir, ""), "/")
+			for _, check := range terraform.GetTfChecks(tfDir.Path(), relDir, tfCheckTypes) {
 				check.Run()
 				checks = append(checks, check)
 			}
