@@ -10,8 +10,8 @@ import (
 
 func FixFmt(cloneDir string) error {
 	for _, tfDir := range FindAllTfDir(cloneDir) {
-		log.Info().Msgf("Executing action fmt on tfDir: %s", tfDir)
-		tf, err := tfexec.NewTerraform(tfDir, terraformPath)
+		log.Info().Msgf("Executing action fmt on tfDir: %s", tfDir.Path())
+		tf, err := tfexec.NewTerraform(tfDir.Path(), terraformPath)
 		if err != nil {
 			return err
 		}
