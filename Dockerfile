@@ -18,12 +18,14 @@ COPY terraform-checker /go/bin/terraform-checker
 RUN apk add curl git openssh unzip
 
 # Simple tfswitch
-RUN curl -Ls https://github.com/terraform-tools/simple-tfswitch/releases/download/0.1.6/simple-tfswitch_0.1.6_Linux_x86_64.tar.gz | tar xzf - -C /usr/local/bin
+ARG TFSWITCH_ARCH=x86_64
+RUN curl -Ls https://github.com/terraform-tools/simple-tfswitch/releases/download/0.1.6/simple-tfswitch_0.1.6_Linux_${TFSWITCH_ARCH}.tar.gz | tar xzf - -C /usr/local/bin
 RUN mv /usr/local/bin/simple-tfswitch /usr/local/bin/terraform
 
 # Tflint
+ARG TFLINT_ARCH=amd64
 ENV TFLINT_VERSION v0.43.0
-RUN wget https://github.com/terraform-linters/tflint/releases/download/${TFLINT_VERSION}/tflint_linux_amd64.zip -O /tmp/tflint.zip && \
+RUN wget https://github.com/terraform-linters/tflint/releases/download/${TFLINT_VERSION}/tflint_linux_${TFLINT_ARCH}.zip -O /tmp/tflint.zip && \
     unzip /tmp/tflint.zip -d /bin && \
     rm /tmp/tflint.zip
 
