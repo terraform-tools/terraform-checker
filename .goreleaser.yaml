@@ -35,6 +35,8 @@ dockers:
       - "ghcr.io/terraform-tools/terraform-checker:{{ .Version }}-arm64v8"
     build_flag_templates:
       - "--platform=linux/arm64/v8"
+      - "--build-arg=TFSWITCH_ARCH=arm64"
+      - "--build-arg=TFLINT_ARCH=arm64"
 
 docker_manifests:
   - name_template: "ghcr.io/terraform-tools/terraform-checker:{{ .Version }}"
