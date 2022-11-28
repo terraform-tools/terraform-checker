@@ -12,6 +12,8 @@ permissions:
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
+    env:
+      DOCKER_CLI_EXPERIMENTAL: "enabled"
     steps:
       -
         name: Checkout
@@ -24,8 +26,11 @@ jobs:
         with:
           go-version: 1.18
       -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      -
         name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
