@@ -21,10 +21,26 @@ builds:
       - -X main.buildTag={{ .Version }}
 
 dockers:
-  - goos: linux
+  - use: buildx
+    goos: linux
     goarch: amd64
     image_templates:
-      - "ghcr.io/terraform-tools/terraform-checker:{{ .Version }}"
+      - "ghcr.io/terraform-tools/terraform-checker:{{ .Version }}-amd64"
+    build_flag_templates:
+      - "--platform=linux/amd64"
+  - use: buildx
+    goos: linux
+    goarch: arm64
+    image_templates:
+      - "ghcr.io/terraform-tools/terraform-checker:{{ .Version }}-arm64v8"
+    build_flag_templates:
+      - "--platform=linux/arm64/v8"
+
+docker_manifests:
+  - name_template: "ghcr.io/terraform-tools/terraform-checker:{{ .Version }}"
+    image_templates:
+      - "ghcr.io/terraform-tools/terraform-checker:{{ .Version }}-amd64"
+      - "ghcr.io/terraform-tools/terraform-checker:{{ .Version }}-arm64v8"
 
 snapshot:
   name_template: "{{ .FullCommit }}-SNAPSHOT"
