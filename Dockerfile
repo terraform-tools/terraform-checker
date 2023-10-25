@@ -1,4 +1,4 @@
-FROM alpine:3.15.4
+FROM alpine:3.18
 
 # Create appuser.
 ENV USER=appuser
@@ -24,7 +24,7 @@ RUN mv /usr/local/bin/simple-tfswitch /usr/local/bin/terraform
 
 # Tflint
 ARG TFLINT_ARCH=amd64
-ENV TFLINT_VERSION v0.43.0
+ENV TFLINT_VERSION v0.48.0
 RUN wget https://github.com/terraform-linters/tflint/releases/download/${TFLINT_VERSION}/tflint_linux_${TFLINT_ARCH}.zip -O /tmp/tflint.zip && \
     unzip /tmp/tflint.zip -d /bin && \
     rm /tmp/tflint.zip
