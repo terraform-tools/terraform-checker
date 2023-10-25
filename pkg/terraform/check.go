@@ -3,7 +3,7 @@ package terraform
 import (
 	"fmt"
 
-	"github.com/google/go-github/v43/github"
+	"github.com/google/go-github/v56/github"
 	tfjson "github.com/hashicorp/terraform-json"
 	"github.com/shurcooL/githubv4"
 	"github.com/terraform-linters/tflint/formatter"
@@ -185,7 +185,7 @@ func (t *TfCheckValidate) Annotations() (annotations []*github.CheckRunAnnotatio
 	for _, diag := range t.tfValidateOutput.Diagnostics {
 		currentDiag := diag
 
-		if currentDiag.Range.Filename == "" {
+		if currentDiag.Range == nil || currentDiag.Range.Filename == "" {
 			continue
 		}
 

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/go-github/v43/github"
+	"github.com/google/go-github/v56/github"
 	"github.com/rs/zerolog/log"
 	"github.com/shurcooL/githubv4"
 	"github.com/terraform-tools/terraform-checker/pkg/terraform"

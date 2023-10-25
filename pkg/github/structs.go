@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/google/go-github/v43/github"
+	"github.com/google/go-github/v56/github"
 	"github.com/palantir/go-githubapp/githubapp"
 	"github.com/rs/zerolog/log"
 	"github.com/terraform-tools/terraform-checker/pkg/config"

@@ -7,11 +7,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/google/go-github/v43/github"
+	"github.com/google/go-github/v56/github"
 	tfjson "github.com/hashicorp/terraform-json"
 	"github.com/rs/zerolog/log"
 	"github.com/shurcooL/githubv4"
-	"github.com/terraform-linters/tflint/tflint"
+	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 	"github.com/terraform-tools/terraform-checker/pkg/utils"
 	"gopkg.in/yaml.v3"
 )
