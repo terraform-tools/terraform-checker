@@ -7,7 +7,6 @@ linters:
   - bodyclose
   - bidichk
   - cyclop
-  - depguard
   - dogsled
   - nilnil
   - tenv
