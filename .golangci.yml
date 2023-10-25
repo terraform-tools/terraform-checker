@@ -7,7 +7,6 @@ linters:
   - bodyclose
   - bidichk
   - cyclop
-  - depguard
   - dogsled
   - nilnil
   - tenv
@@ -36,7 +35,6 @@ linters:
   - gomodguard
   - goprintffuncname
   - gosec
-  - ifshort
   - importas
   - makezero
   - misspell

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/google/go-github/v43/github"
+	"github.com/google/go-github/v56/github"
 	"github.com/palantir/go-githubapp/githubapp"
 	"github.com/rs/zerolog/log"
 	"github.com/terraform-tools/terraform-checker/pkg/config"
@@ -224,7 +224,7 @@ func (e PullRequestEvent) GetHeadBranch() string {
 	return e.GetPullRequest().GetHead().GetRef()
 }
 
-func (e PullRequestEvent) IsValid(c *config.Config) bool {
+func (e PullRequestEvent) IsValid(_ *config.Config) bool {
 	if !utils.StrInSlice(getAuthorizedPullRequestActions(), e.GetAction()) {
 		log.Debug().Msgf("Discarding event pull_request %s", e.GetAction())
 		return false

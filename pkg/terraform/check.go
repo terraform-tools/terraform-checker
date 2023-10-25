@@ -3,7 +3,7 @@ package terraform
 import (
 	"fmt"
 
-	"github.com/google/go-github/v43/github"
+	"github.com/google/go-github/v56/github"
 	tfjson "github.com/hashicorp/terraform-json"
 	"github.com/shurcooL/githubv4"
 	"github.com/terraform-linters/tflint/formatter"
@@ -179,13 +179,13 @@ func (t *TfCheckValidate) FixAction() *github.CheckRunAction {
 
 func (t *TfCheckValidate) Annotations() (annotations []*github.CheckRunAnnotation) {
 	if t.tfValidateOutput == nil || t.tfValidateOutput.Valid || t.tfValidateOutput.Diagnostics == nil {
-		return
+		return annotations
 	}
 
 	for _, diag := range t.tfValidateOutput.Diagnostics {
 		currentDiag := diag
 
-		if currentDiag.Range.Filename == "" {
+		if currentDiag.Range == nil || currentDiag.Range.Filename == "" {
 			continue
 		}
 
@@ -254,7 +254,7 @@ func (t *TfCheckTfLint) FixAction() *github.CheckRunAction {
 
 func (t *TfCheckTfLint) Annotations() (annotations []*github.CheckRunAnnotation) {
 	if t.tfLintOutput == nil {
-		return
+		return annotations
 	}
 	for _, issue := range t.tfLintOutput.Issues {
 		currentIssue := issue

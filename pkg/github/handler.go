@@ -10,7 +10,7 @@ import (
 	"github.com/terraform-tools/terraform-checker/pkg/filter"
 	"github.com/terraform-tools/terraform-checker/pkg/terraform"
 
-	"github.com/google/go-github/v43/github"
+	"github.com/google/go-github/v56/github"
 	"github.com/palantir/go-githubapp/githubapp"
 )
 
@@ -27,7 +27,7 @@ func (h *CheckHandler) Handles() []string {
 	return []string{"check_run", "check_suite", "pull_request"}
 }
 
-func (h *CheckHandler) Handle(ctx context.Context, eventType, deliveryID string, payload []byte) error { //nolint:cyclop
+func (h *CheckHandler) Handle(_ context.Context, eventType, _ string, payload []byte) error { //nolint:cyclop
 	var ok bool
 	var event *CheckEvent
 	dirFilters := []filter.Option{}
