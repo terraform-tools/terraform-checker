@@ -27,7 +27,7 @@ func (h *CheckHandler) Handles() []string {
 	return []string{"check_run", "check_suite", "pull_request"}
 }
 
-func (h *CheckHandler) Handle(ctx context.Context, eventType, deliveryID string, payload []byte) error { //nolint:cyclop
+func (h *CheckHandler) Handle(_ context.Context, eventType, _ string, payload []byte) error { //nolint:cyclop
 	var ok bool
 	var event *CheckEvent
 	dirFilters := []filter.Option{}

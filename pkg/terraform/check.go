@@ -179,7 +179,7 @@ func (t *TfCheckValidate) FixAction() *github.CheckRunAction {
 
 func (t *TfCheckValidate) Annotations() (annotations []*github.CheckRunAnnotation) {
 	if t.tfValidateOutput == nil || t.tfValidateOutput.Valid || t.tfValidateOutput.Diagnostics == nil {
-		return
+		return annotations
 	}
 
 	for _, diag := range t.tfValidateOutput.Diagnostics {
@@ -254,7 +254,7 @@ func (t *TfCheckTfLint) FixAction() *github.CheckRunAction {
 
 func (t *TfCheckTfLint) Annotations() (annotations []*github.CheckRunAnnotation) {
 	if t.tfLintOutput == nil {
-		return
+		return annotations
 	}
 	for _, issue := range t.tfLintOutput.Issues {
 		currentIssue := issue

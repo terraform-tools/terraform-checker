@@ -36,7 +36,6 @@ linters:
   - gomodguard
   - goprintffuncname
   - gosec
-  - ifshort
   - importas
   - makezero
   - misspell
